@@ -6,7 +6,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import pl.picture.puzzles.common.Puzzle;
-import pl.picuter.puzzles.windows.Messages;
+import pl.picture.puzzles.windows.Messages;
 
 public class FillAPixPuzzle extends Puzzle {
 

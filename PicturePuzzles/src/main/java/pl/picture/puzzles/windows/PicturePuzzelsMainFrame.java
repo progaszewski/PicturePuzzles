@@ -1,4 +1,4 @@
-package pl.picuter.puzzles.windows;
+package pl.picture.puzzles.windows;
 
 import java.awt.Color;
 import java.awt.FlowLayout;

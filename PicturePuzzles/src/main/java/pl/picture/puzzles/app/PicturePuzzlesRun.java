@@ -5,7 +5,7 @@ import java.util.Locale;
 
 import javax.swing.UIManager;
 
-import pl.picuter.puzzles.windows.PicturePuzzelsMainFrame;
+import pl.picture.puzzles.windows.PicturePuzzelsMainFrame;
 
 /**
  * Picture Puzzles!
