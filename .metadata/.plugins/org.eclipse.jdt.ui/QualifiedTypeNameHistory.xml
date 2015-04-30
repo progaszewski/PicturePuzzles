@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.awt.EventQueue"/>
+<fullyQualifiedTypeName name="pl.picuter.puzzles.windows.PicturePuzzelsMainFrame"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="javax.swing.UIManager"/>
+<fullyQualifiedTypeName name="pl.picture.puzzles.common.Puzzle"/>
+<fullyQualifiedTypeName name="pl.picture.puzzles.fillapix.FillAPixPuzzlePanel"/>
+<fullyQualifiedTypeName name="java.awt.event.MouseMotionListener"/>
+<fullyQualifiedTypeName name="pl.picture.puzzles.fillapix.FillAPixArea"/>
+<fullyQualifiedTypeName name="pl.picture.puzzles.fillapix.FillAPixPuzzle"/>
+<fullyQualifiedTypeName name="pl.picuter.puzzles.windows.Messages"/>
+<fullyQualifiedTypeName name="java.util.Locale"/>
+<fullyQualifiedTypeName name="javax.swing.JPanel"/>
+<fullyQualifiedTypeName name="java.awt.event.MouseListener"/>
+<fullyQualifiedTypeName name="java.awt.event.KeyListener"/>
+<fullyQualifiedTypeName name="pl.fillapix.editor.EditorPanel"/>
+<fullyQualifiedTypeName name="java.io.PrintWriter"/>
+<fullyQualifiedTypeName name="pl.fillapix.editor.FillAPixArea"/>
+<fullyQualifiedTypeName name="javax.swing.JFileChooser"/>
+<fullyQualifiedTypeName name="pl.picture.puzzles.common.PuzzleUtilities"/>
+</qualifiedTypeNameHistroy>

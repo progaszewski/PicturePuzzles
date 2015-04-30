@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;pl.picuter.puzzles.windows&apos; to &apos;pl.picture.puzzles.windows&apos;&#x0D;&#x0A;- Original project: &apos;PicturePuzzles&apos;&#x0D;&#x0A;- Original element: &apos;PicturePuzzles/src/main/java/pl.picuter.puzzles.windows&apos;&#x0D;&#x0A;- Renamed element: &apos;PicturePuzzles/src/main/java/pl.picture.puzzles.windows&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;pl.picuter.puzzles.windows&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src\/main\/java&lt;pl.picuter.puzzles.windows" name="pl.picture.puzzles.windows" qualified="false" references="true" stamp="1430409976070" textual="false" version="1.0"/>
+</session>
