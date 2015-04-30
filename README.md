@@ -1,2 +1,2 @@
 # PicturePuzzles
-mgr
+mgr - Algorytmy rozwiązujące łamigłówki logiczne
