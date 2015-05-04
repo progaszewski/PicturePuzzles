@@ -303,7 +303,8 @@ public class FillAPixArea {
 			// Jezeli nie ma zadnych cyfr, które posiadaja taka sama ilosc
 			// pol niepokolorowanych co wartosc cyfry oraz nie ma cyfr, ktore
 			// posiadaja juz taka sama ilosc pokolorowanych pol co ich wartosc,
-			// to sprobuj poszukać pola ktore musza byc pokolorowane
+			// to sprobuj poszukać pola ktore musza byc pokolorowane lub ktore
+			// napewno nie moga byc pokolorowane
 			if (!changeFlag && tmpNumbers.size() > 0) {
 				changeFlag = advanceColoring(tmpNumbers);
 			}
@@ -329,6 +330,9 @@ public class FillAPixArea {
 		}
 		this.absenceFields = new ArrayList<Field>();
 
+		// Przygotowanie planszy: dla kazdego pola znalezienie wszystkich cyfr
+		// do ktorych naleza oraz wyznaczenie wszystkich relacji dla kazdej
+		// cyfry z inna cyfra
 		for (FaPNumber number : tmpNumbers) {
 			number.relations = new HashMap<FaPNumber, ArrayList<Field>>();
 			int i = number.i - 1;
@@ -397,70 +401,56 @@ public class FillAPixArea {
 					// powinny zostac oznaczone jako "SELECTED"
 					if (n - fields.size() == x - k) {
 
-						int i = number.i - 1;
-						if (i < 0)
-							i = 0;
-
-						for (; i <= number.i + 1 && i < this.y; i++) {
-							int j = number.j - 1;
-							if (j < 0)
-								j = 0;
-
-							for (; j <= number.j + 1 && j < this.x; j++) {
-								if (area[i][j].val != ABSENCE)
-									continue;
-
-								boolean flag = false;
-								for (FaPNumber num : area[i][j].belongsToNumber) {
-									if (num == relatedNumber) {
-										flag = true;
-										break;
-									}
-								}
-								if (!flag) {
-									area[i][j].val = SELECTED;
-								}
-							}
-						}
+						selectFields(number, relatedNumber, SELECTED);
 						changeFlag = true;
 					}
 				} else if (k == x) {
 					ArrayList<Field> fields = number.relations
 							.get(relatedNumber);
+
+					// Sprawdzenie czy pola, ktore sa w relacji dwoch cyfr
+					// powinny zostac oznaczone jako "EMPTY"
 					if (fields.size() == (9 - relatedNumber.numberEmpty - relatedNumber.numberSelected)
 							&& n > (9 - relatedNumber.numberEmpty - relatedNumber.numberSelected)) {
 
-						int i = number.i - 1;
-						if (i < 0)
-							i = 0;
-
-						for (; i <= number.i + 1 && i < this.y; i++) {
-							int j = number.j - 1;
-							if (j < 0)
-								j = 0;
-
-							for (; j <= number.j + 1 && j < this.x; j++) {
-								if (area[i][j].val != ABSENCE)
-									continue;
-
-								boolean flag = false;
-								for (FaPNumber num : area[i][j].belongsToNumber) {
-									if (num == relatedNumber) {
-										flag = true;
-										break;
-									}
-								}
-								if (!flag) {
-									area[i][j].val = EMPTY;
-								}
-							}
-						}
+						selectFields(number, relatedNumber, EMPTY);
 						changeFlag = true;
 					}
 				}
 			}
 		}
 		return changeFlag;
+	}
+
+	// Kolorowanie pol niepokolorowanyh na "PUSTE" lub "ZAZNACZONE" -
+	// - advanceColoring
+	private void selectFields(final FaPNumber number,
+			final FaPNumber relatedNumber, byte color) {
+		int i = number.i - 1;
+		if (i < 0)
+			i = 0;
+
+		for (; i <= number.i + 1 && i < this.y; i++) {
+			int j = number.j - 1;
+			if (j < 0)
+				j = 0;
+
+			for (; j <= number.j + 1 && j < this.x; j++) {
+				if (area[i][j].val != ABSENCE)
+					continue;
+
+				boolean flag = false;
+				for (FaPNumber num : area[i][j].belongsToNumber) {
+					if (num == relatedNumber) {
+						flag = true;
+						break;
+					}
+				}
+				if (!flag) {
+					area[i][j].val = color;
+				}
+			}
+		}
 	}
 
 	// Kolorowanie pol niepokolorowanyh na "PUSTE" lub "ZAZNACZONE"
