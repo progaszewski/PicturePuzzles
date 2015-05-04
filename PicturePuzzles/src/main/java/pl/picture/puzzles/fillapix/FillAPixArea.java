@@ -3,6 +3,8 @@ package pl.picture.puzzles.fillapix;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import pl.picture.puzzles.common.PuzzleUtilities;
@@ -17,6 +19,8 @@ public class FillAPixArea {
 	public int x = 0, y = 0; // Wymiary lamiglowki
 
 	private Field[][] tmp;
+
+	private ArrayList<Field> absenceFields = new ArrayList<Field>();
 
 	public FillAPixArea(File f) {
 		init(f);
@@ -145,7 +149,7 @@ public class FillAPixArea {
 	class Field {
 		public Byte val = -1; // -1: BRAK, 0: PUSTE, 1: ZAZNACZONE
 		public Byte number; // Liczba
-		public FaPNumber belongsToNumber;
+		public ArrayList<FaPNumber> belongsToNumber;
 
 		public Field() {
 
@@ -163,14 +167,10 @@ public class FillAPixArea {
 		public byte numberSelected; // Ilosc pol zaznaczonych wokol liczby
 		public byte numberEmpty; // Ilosc pol niezaznaczonych / pustych wokol
 									// liczby
-		public int npm; // Ilosc mozliwych ruchow (Number Possible Moves)
+
 		public final int i, j; // pozycja liczny
 
-		public FaPNumber bestNumber; // Liczba, ktora wchodzi w "relacje" z ta
-										// liczba o najwyzszym
-										// prawdopodobienstwu
-		public byte numberBestNumber; // Ilosc Liczb o najwyzszym
-										// prawdopodobienstwu
+		public Map<FaPNumber, ArrayList<Field>> relations = null;
 
 		public FaPNumber(byte value, int i, int j) {
 			this.value = value;
@@ -303,11 +303,10 @@ public class FillAPixArea {
 			// Jezeli nie ma zadnych cyfr, które posiadaja taka sama ilosc
 			// pol niepokolorowanych co wartosc cyfry oraz nie ma cyfr, ktore
 			// posiadaja juz taka sama ilosc pokolorowanych pol co ich wartosc,
-			// to wykonaj zaawanasowane kolorowanie
-			if (!changeFlag) {
+			// to sprobuj poszukać pola ktore musza byc pokolorowane
+			if (!changeFlag && tmpNumbers.size() > 0) {
 				changeFlag = advanceColoring(tmpNumbers);
 			}
-
 		} while (tmpNumbers.size() > 0 && changeFlag);
 		// Zakonczenie odmierzania czasu
 
@@ -321,137 +320,147 @@ public class FillAPixArea {
 		return checkSolve();
 	}
 
-	// Zaawansowane kolorowanie lamiglowki
-	private boolean advanceColoring(ArrayList<FaPNumber> numbers) {
+	private boolean advanceColoring(ArrayList<FaPNumber> tmpNumbers) {
 
-		// Liczenie mozliwych pokolorowan
-		countingPossibleMoves(numbers);
+		boolean changeFlag = false;
+		// Czyszczenie pustych pol.
+		for (Field field : this.absenceFields) {
+			field.belongsToNumber = null;
+		}
+		this.absenceFields = new ArrayList<Field>();
 
-		return false;
-	}
-
-	// Liczenie mozliwych pokoloorowan dla pol danej cyfry, jezeli dane pole juz
-	// nalezy do jakiejs cyfry ale ilosc mozliwych pokolorowan jest mniejsza
-	// pole zostanie przypisane do cyfry o mniejszej ilosc pokolorowan
-	private void countingPossibleMoves(ArrayList<FaPNumber> numbers) {
-		for (FaPNumber number : numbers) {
-			int availableFields = 9 - number.numberEmpty
-					- number.numberSelected;
-			int numberFieldToColor = number.value - number.numberSelected;
-
-			number.npm = PuzzleUtilities.c(availableFields, numberFieldToColor);
-
+		for (FaPNumber number : tmpNumbers) {
+			number.relations = new HashMap<FaPNumber, ArrayList<Field>>();
 			int i = number.i - 1;
-
 			if (i < 0)
 				i = 0;
 
-			for (; i < this.y && i <= number.i + 1; i++) {
+			for (; i <= number.i + 1 && i < this.y; i++) {
 				int j = number.j - 1;
-
 				if (j < 0)
 					j = 0;
-				for (; j < this.x && j <= number.j + 1; j++) {
 
-					// Jezeli pole nie jest pokolorowane
-					if (this.area[i][j].val == ABSENCE) {
-						// Jezeli pole nie nalezy do zadnej cyfry to przypisz do
-						// aktualnie iterowanej cyfry
-						if (this.area[i][j].belongsToNumber == null) {
-							this.area[i][j].belongsToNumber = number;
+				for (; j <= number.j + 1 && j < this.x; j++) {
 
-							// Jezel aktualna cyfra nie posiada cyfry o
-							// najwyzszym prawdopodobienstwie to przywpisz do
-							// niej ja sama i ustaw ilosc cyfr o najwyzszym
-							// prawdopodobienstwie na 1, w przeciwnym przypadku
-							// zwiesz licznik cyfr o nejwyzszym
-							// prawdopodobienstwie
-							if (number.bestNumber == null) {
-								number.bestNumber = number;
-								number.numberBestNumber = 1;
-							} else if (number.bestNumber == number) {
-								number.numberBestNumber++;
+					// Jezeli pole juz pokolorowana to przejdz do nastepnej
+					if (area[i][j].val != ABSENCE)
+						continue;
+
+					// Jezeli pole nie nalezy do zadnej cyfry utworz liste
+					if (area[i][j].belongsToNumber == null) {
+						area[i][j].belongsToNumber = new ArrayList<FaPNumber>();
+						this.absenceFields.add(area[i][j]);
+					} else {
+						// Petla po cyfrach nalezacych do pola
+						for (FaPNumber btn : area[i][j].belongsToNumber) {
+
+							// Przekazanie informacji innej cyfrze ktora nalezy
+							// do tego pola, ze aktalnie iterowana cyfra wchodzi
+							// z nia w relacje
+							if (btn.relations.get(number) == null) {
+								btn.relations.put(number,
+										new ArrayList<Field>());
 							}
-							// Jezeli pole przynalezy do liczby o mniejszym
-							// prawdopodobienstwie od aktualnie iterowanej to
-							// wykonaj:
-						} else if (this.area[i][j].belongsToNumber.npm > number.npm
-								|| (this.area[i][j].belongsToNumber.npm == number.npm && this.area[i][j].belongsToNumber.value
-										- this.area[i][j].belongsToNumber.numberSelected > number.value
-										- number.numberSelected)) {
-							// Jezeli do pola przynalezy cyfra inna niz
-							// aktualnie iterowana to przypisz ustawa cyfrze tej
-							// te aktualnie iterowana, w p.p. zwieksz jej ilosc
-							// cyfr o najwyzszym prawdopodobienstwie
-							if (this.area[i][j].belongsToNumber.bestNumber != number) {
-								this.area[i][j].belongsToNumber.bestNumber = number;
-								this.area[i][j].belongsToNumber.numberBestNumber = 1;
-							} else if (this.area[i][j].belongsToNumber.bestNumber == number) {
-								this.area[i][j].belongsToNumber.numberBestNumber++;
+							btn.relations.get(number).add(area[i][j]);
+
+							// Dodanie relacji z inna cyfra nalezacej do pola.
+							if (number.relations.get(btn) == null) {
+								number.relations.put(btn,
+										new ArrayList<Field>());
 							}
-
-							// Jezeli aktualnie iterowana cyfra nie posiada
-							// najlepszej cyfry to ustaw ja sama, w p.p. zwieksz
-							// ilosc cyfr o najwyzszym prawdopodobienstwie
-							if (number.bestNumber == null) {
-								number.bestNumber = number;
-								number.numberBestNumber = 1;
-							} else if (number.bestNumber == number) {
-								number.numberBestNumber++;
-							}
-							// Jezeli pole przynalezy do liczby o wiekszym
-							// pradpopodobiestwie to wykonaj:
-						} else {
-							// Jezeli aktualnie iterowana cyfra nie ma
-							// ustawionej cyfry o najwyzszym prawdopodobienstwu
-							// ustaw ja przypisjac cyfre do ktorej nalezy pole,
-							if (number.bestNumber == null) {
-								number.bestNumber = this.area[i][j].belongsToNumber;
-								number.numberBestNumber = 1;
-
-								// Jezeli aktualnie iterowana cyfra ma ustawiona
-								// taka sama cyfre o najwyzszym
-								// prawdopodobienstwie co cyfra ktora nalezy do
-								// pola to zwieszk licznik cyfr o najwyzszym
-								// prawdopodobienstwie
-							} else if (number.bestNumber == this.area[i][j].belongsToNumber) {
-								number.numberBestNumber++;
-
-								// Jezeli aktualnie iterowana cyfra posiada
-								// najlepsza cyfre gorsza od tej ktora nalezy do
-								// pola to przypisz najlepsza cyfre ktora nalezy
-								// do pola
-							} else if (number.bestNumber.npm > this.area[i][j].belongsToNumber.npm
-									|| (number.bestNumber.npm == this.area[i][j].belongsToNumber.npm && number.bestNumber.value
-											- number.bestNumber.numberSelected > this.area[i][j].belongsToNumber.value
-											- this.area[i][j].belongsToNumber.numberSelected)) {
-								number.bestNumber = this.area[i][j].belongsToNumber;
-								number.numberBestNumber = 1;
-							}
-
+							number.relations.get(btn).add(area[i][j]);
 						}
-					}
 
-					// Jezeli pole nie jest pokolorowane oraz (pole nie należy
-					// do żadnej cyfry lub pole nalezy do cyfry o gorszym
-					// prawdopodobienstwem lub (cyfra do której nalezy pole ma
-					// takie samo prawdopodobienstwo ale cyfra ta ma wiecej pol
-					// pozostalych do zakolorowania)) wtedy
-					// przypisz pole do nowej cyfry
-					// if (this.area[i][j].val == ABSENCE
-					// && (this.area[i][j].belongsToNumber == null
-					// || this.area[i][j].belongsToNumber.npm > number.npm ||
-					// (this.area[i][j].belongsToNumber.npm == number.npm &&
-					// this.area[i][j].belongsToNumber.value
-					// - this.area[i][j].belongsToNumber.numberSelected >
-					// number.value
-					// - number.numberSelected))) {
-					// this.area[i][j].belongsToNumber = number;
-					//
-					// }
+					}
+					// Dodaj polu przynaleznosc do cyfry
+					area[i][j].belongsToNumber.add(number);
 				}
 			}
 		}
+
+		for (FaPNumber number : tmpNumbers) {
+			// ilosc pozostalych pol do pokolorowania
+			byte n = (byte) (9 - number.numberEmpty - number.numberSelected);
+			// ile zostalo jeszcze pol do zamalowania dla aktulanej cyfry
+			byte x = (byte) (number.value - number.numberSelected);
+
+			for (FaPNumber relatedNumber : number.relations.keySet()) {
+
+				// ile zostalo pol do pokolorowania liczbie relatywnej do
+				// akutalnie iterowanej
+				byte k = (byte) (relatedNumber.value - relatedNumber.numberSelected);
+
+				if (k < x) {
+					ArrayList<Field> fields = number.relations
+							.get(relatedNumber);
+					// Sprawdzenie czy pola, ktore sa w relacji dwoch cyfr
+					// powinny zostac oznaczone jako "SELECTED"
+					if (n - fields.size() == x - k) {
+
+						int i = number.i - 1;
+						if (i < 0)
+							i = 0;
+
+						for (; i <= number.i + 1 && i < this.y; i++) {
+							int j = number.j - 1;
+							if (j < 0)
+								j = 0;
+
+							for (; j <= number.j + 1 && j < this.x; j++) {
+								if (area[i][j].val != ABSENCE)
+									continue;
+
+								boolean flag = false;
+								for (FaPNumber num : area[i][j].belongsToNumber) {
+									if (num == relatedNumber) {
+										flag = true;
+										break;
+									}
+								}
+								if (!flag) {
+									area[i][j].val = SELECTED;
+								}
+							}
+						}
+						changeFlag = true;
+					}
+				} else if (k == x) {
+					ArrayList<Field> fields = number.relations
+							.get(relatedNumber);
+					if (fields.size() == (9 - relatedNumber.numberEmpty - relatedNumber.numberSelected)
+							&& n > (9 - relatedNumber.numberEmpty - relatedNumber.numberSelected)) {
+
+						int i = number.i - 1;
+						if (i < 0)
+							i = 0;
+
+						for (; i <= number.i + 1 && i < this.y; i++) {
+							int j = number.j - 1;
+							if (j < 0)
+								j = 0;
+
+							for (; j <= number.j + 1 && j < this.x; j++) {
+								if (area[i][j].val != ABSENCE)
+									continue;
+
+								boolean flag = false;
+								for (FaPNumber num : area[i][j].belongsToNumber) {
+									if (num == relatedNumber) {
+										flag = true;
+										break;
+									}
+								}
+								if (!flag) {
+									area[i][j].val = EMPTY;
+								}
+							}
+						}
+						changeFlag = true;
+					}
+				}
+			}
+		}
+		return changeFlag;
 	}
 
 	// Kolorowanie pol niepokolorowanyh na "PUSTE" lub "ZAZNACZONE"
