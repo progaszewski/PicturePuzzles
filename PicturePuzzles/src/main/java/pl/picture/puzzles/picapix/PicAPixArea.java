@@ -17,6 +17,8 @@ public class PicAPixArea {
 	public List<ListOfNumber> verticalListsOfNumbers; // Lista liczb pionowych
 	public List<ListOfNumber> horizontalListsOfNumbers; // Lista liczb poziomych
 
+	public int maxVerticalNumbers, maxHorizontalNumbers;
+
 	public PicAPixArea(File f) {
 		init(f);
 	}
@@ -32,10 +34,13 @@ public class PicAPixArea {
 			String verticalNumbers = readFile.nextLine();
 			String horizontalNumbers = readFile.nextLine();
 
+			System.out.println(verticalNumbers);
+			System.out.println(horizontalNumbers);
+
 			readFile.close();
 
-			String[] listOfVerticalNumbers = verticalNumbers.split("|");
-			String[] listOFHorizontalNumbers = horizontalNumbers.split("|");
+			String[] listOfVerticalNumbers = verticalNumbers.split("T");
+			String[] listOFHorizontalNumbers = horizontalNumbers.split("T");
 
 			this.y = listOFHorizontalNumbers.length;
 			this.x = listOfVerticalNumbers.length;
@@ -51,6 +56,11 @@ public class PicAPixArea {
 			// Tworzenie listy liczb pionowych
 			for (int i = 0; i < x; i++) {
 				String[] numbers = listOfVerticalNumbers[i].split(",");
+
+				System.out.println(listOfVerticalNumbers[i]);
+				if (this.maxVerticalNumbers < numbers.length)
+					this.maxVerticalNumbers = numbers.length;
+
 				List<PaNumber> paNumber = new ArrayList<PaNumber>();
 				for (int j = 0; j < numbers.length; j++) {
 					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
@@ -59,6 +69,22 @@ public class PicAPixArea {
 				this.verticalListsOfNumbers.add(new ListOfNumber(paNumber,
 						(byte) numbers.length));
 
+			}
+
+			// Tworzenie listy liczb poziomych
+			for (int i = 0; i < y; i++) {
+				String[] numbers = listOFHorizontalNumbers[i].split(",");
+
+				if (this.maxHorizontalNumbers < numbers.length)
+					this.maxHorizontalNumbers = numbers.length;
+
+				List<PaNumber> paNumber = new ArrayList<PaNumber>();
+				for (int j = 0; j < numbers.length; j++) {
+					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+				}
+
+				this.horizontalListsOfNumbers.add(new ListOfNumber(paNumber,
+						(byte) numbers.length));
 			}
 
 		} catch (FileNotFoundException e) {

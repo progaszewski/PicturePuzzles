@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 
 import pl.picture.puzzles.common.Puzzle;
 import pl.picture.puzzles.fillapix.FillAPixPuzzle;
+import pl.picture.puzzles.picapix.PicAPixPuzzle;
 
 public class PicturePuzzelsMainFrame extends JFrame {
 
@@ -83,6 +84,12 @@ public class PicturePuzzelsMainFrame extends JFrame {
 
 		JMenuItem selectPicAPix = new JMenuItem(
 				Messages.getString("PicturePuzzelsMainFrame.mntmPicapix.text")); //$NON-NLS-1$
+		selectPicAPix.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				puzzle = new PicAPixPuzzle();
+				replacePanel(puzzle.getPanel());
+			}
+		});
 		puzzleMenu.add(selectPicAPix);
 
 		JMenu actionMenu = new JMenu(

@@ -113,7 +113,7 @@ public class FillAPixPanel extends JPanel implements MouseListener {
 		i = (x - marginLeft) / (gridSize + 1);
 		j = (y - marginTop) / (gridSize + 1);
 
-		// System.out.println(i + " " + j);
+		// System.out.println(x + " " + y);
 
 		if (x - marginLeft > 0 && y - marginTop > 0
 				&& i * (gridSize + 1) + marginLeft != x

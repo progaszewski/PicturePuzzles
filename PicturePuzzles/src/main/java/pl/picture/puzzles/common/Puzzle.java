@@ -22,7 +22,8 @@ public abstract class Puzzle {
 
 	protected File openPuzzle(final String type) {
 		// fc = new JFileChooser(System.getProperty("user.home") + "\\Desktop");
-		fc = new JFileChooser("E:\\Praca Mgr\\Puzzles");
+		// fc = new JFileChooser("E:\\Praca Mgr\\Puzzles");
+		fc = new JFileChooser("G:\\Praca Mgr\\workspace\\Puzzles");
 		fc.setAcceptAllFileFilterUsed(false);
 		fc.setFileFilter(new FileFilter() {
 			private final String txt = type;
