@@ -1,7 +1,10 @@
 package pl.picture.puzzles.picapix;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class PicAPixArea {
 
@@ -11,8 +14,8 @@ public class PicAPixArea {
 
 	public Field[][] area; // tablica reprezentujaca plansze
 	public int x = 0, y = 0; // wymiray planszy
-	public List<ListOfNumber> verticalListsOfNumbers;
-	public List<ListOfNumber> horizontalListsOfNumbers;
+	public List<ListOfNumber> verticalListsOfNumbers; // Lista liczb pionowych
+	public List<ListOfNumber> horizontalListsOfNumbers; // Lista liczb poziomych
 
 	public PicAPixArea(File f) {
 		init(f);
@@ -20,6 +23,47 @@ public class PicAPixArea {
 
 	private void init(File f) {
 
+		this.verticalListsOfNumbers = new ArrayList<ListOfNumber>();
+		this.horizontalListsOfNumbers = new ArrayList<ListOfNumber>();
+
+		try {
+			Scanner readFile = new Scanner(f);
+
+			String verticalNumbers = readFile.nextLine();
+			String horizontalNumbers = readFile.nextLine();
+
+			readFile.close();
+
+			String[] listOfVerticalNumbers = verticalNumbers.split("|");
+			String[] listOFHorizontalNumbers = horizontalNumbers.split("|");
+
+			this.y = listOFHorizontalNumbers.length;
+			this.x = listOfVerticalNumbers.length;
+
+			// Tworzenie planszy / siatki
+			this.area = new Field[y][x];
+			for (int i = 0; i < y; i++) {
+				for (int j = 0; j < x; j++) {
+					this.area[i][j] = new Field();
+				}
+			}
+
+			// Tworzenie listy liczb pionowych
+			for (int i = 0; i < x; i++) {
+				String[] numbers = listOfVerticalNumbers[i].split(",");
+				List<PaNumber> paNumber = new ArrayList<PaNumber>();
+				for (int j = 0; j < numbers.length; j++) {
+					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+				}
+
+				this.verticalListsOfNumbers.add(new ListOfNumber(paNumber,
+						(byte) numbers.length));
+
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 	// Klasa reprezetujaca pole / kratke na planszy
@@ -42,6 +86,15 @@ public class PicAPixArea {
 	public class ListOfNumber {
 		public List<PaNumber> numbers;
 		public byte otherNumbers = -1;
+
+		public ListOfNumber() {
+
+		}
+
+		public ListOfNumber(List<PaNumber> numbers, byte otherNumbers) {
+			this.numbers = numbers;
+			this.otherNumbers = otherNumbers;
+		}
 
 	}
 
