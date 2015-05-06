@@ -25,7 +25,7 @@ public class FillAPixPuzzle extends Puzzle {
 
 	@Override
 	public File openPuzzle() {
-		return selectPuzzle("faptxt");
+		return openPuzzle("faptxt");
 	}
 
 	@Override
