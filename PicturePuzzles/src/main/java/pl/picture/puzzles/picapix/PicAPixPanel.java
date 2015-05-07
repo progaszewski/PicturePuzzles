@@ -14,7 +14,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 
 	private static final long serialVersionUID = -5652831501965895968L;
 
-	private int gridSize = 14;
+	private int gridSize = 16;
 	private int fontSize = 11;
 
 	public PicAPixArea picAPixArea;
@@ -35,12 +35,10 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 		// Wysokosc numerów pionowych
 		this.b = this.picAPixArea.maxVerticalNumbers * (this.gridSize + 1);
 
-		this.width = this.a + (boldVerticaLines * 2)
-				+ (this.picAPixArea.x - boldVerticaLines - 1)
-				+ (this.picAPixArea.x * this.gridSize);
-		this.height = this.b + (boldHorizontaLines * 2)
-				+ (this.picAPixArea.y - boldHorizontaLines - 1)
-				+ (this.picAPixArea.y * this.gridSize);
+		this.width = this.a + (this.picAPixArea.x * (this.gridSize + 1))
+				+ boldVerticaLines + 1;
+		this.height = this.b + (this.picAPixArea.y * (this.gridSize + 1))
+				+ boldHorizontaLines + 1;
 
 		setPreferredSize(new Dimension(this.width, this.height));
 		repaint();
@@ -73,8 +71,9 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 			if (boldLine++ == 5) {
 				boldLine -= 5;
 
-				g2d.fillRect(this.b + (i * this.gridSize + i)
-						+ countBoldLines++, 0, this.width, 2);
+				g2d.fillRect(0, this.b + (i * this.gridSize + i)
+						+ countBoldLines++, this.width, 2);
+
 			} else {
 				x1 = 0;
 				x2 = this.width - 1;
@@ -91,6 +90,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 
 				g2d.fillRect(this.a + (i * this.gridSize + i)
 						+ countBoldLines++, 0, 2, this.height);
+				System.out.println(countBoldLines);
 			} else {
 				y1 = 0;
 				y2 = this.height - 1;
@@ -115,10 +115,23 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 				} else {
 					g2d.setColor(Color.GRAY);
 				}
+
+				// System.out.println(posY * this.gridSize + posY + 1);
+
+				int moveDigitX = 0;
+
+				if (Byte.toString(number.val).length() == 1)
+					moveDigitX = 5;
+				else
+					moveDigitX = 2;
+
+				int moveDigitY = -4;
+
 				g2d.setFont(new Font(null, Font.BOLD, this.fontSize));
 				g2d.drawString(number.val + "", this.a
-						+ (posX * this.gridSize + posX) + countBoldLines + 1,
-						posY * this.gridSize + posY + 1);
+						+ (posX * this.gridSize + posX) + countBoldLines + 1
+						+ moveDigitX, (posY + 1) * (this.gridSize + 1)
+						+ moveDigitY);
 
 				posY++;
 			}
@@ -141,11 +154,21 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 				} else {
 					g2d.setColor(Color.GRAY);
 				}
+
+				int moveDigitX = 0;
+
+				if (Byte.toString(number.val).length() == 1)
+					moveDigitX = 5;
+				else
+					moveDigitX = 2;
+
+				int moveDigitY = -4;
+
 				g2d.setFont(new Font(null, Font.BOLD, this.fontSize));
-				g2d.drawString(number.val + "",
-						posX * this.gridSize + posX + 1, this.b
-								+ (posY * this.gridSize + posY)
-								+ countBoldLines + 1);
+				g2d.drawString(number.val + "", posX * this.gridSize + posX + 1
+						+ moveDigitX, this.b
+						+ ((posY + 1) * (this.gridSize + 1)) + countBoldLines
+						+ moveDigitY);
 
 				posX++;
 			}

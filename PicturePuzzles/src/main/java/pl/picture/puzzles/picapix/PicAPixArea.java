@@ -34,8 +34,8 @@ public class PicAPixArea {
 			String verticalNumbers = readFile.nextLine();
 			String horizontalNumbers = readFile.nextLine();
 
-			System.out.println(verticalNumbers);
-			System.out.println(horizontalNumbers);
+			// System.out.println(verticalNumbers);
+			// System.out.println(horizontalNumbers);
 
 			readFile.close();
 
@@ -57,7 +57,7 @@ public class PicAPixArea {
 			for (int i = 0; i < x; i++) {
 				String[] numbers = listOfVerticalNumbers[i].split(",");
 
-				System.out.println(listOfVerticalNumbers[i]);
+				// System.out.println(listOfVerticalNumbers[i]);
 				if (this.maxVerticalNumbers < numbers.length)
 					this.maxVerticalNumbers = numbers.length;
 
