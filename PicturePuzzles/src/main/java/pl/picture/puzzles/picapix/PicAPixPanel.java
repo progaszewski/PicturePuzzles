@@ -7,8 +7,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 
 import javax.swing.JPanel;
+
+import pl.picture.puzzles.fillapix.FillAPixArea;
 
 public class PicAPixPanel extends JPanel implements MouseListener {
 
@@ -20,6 +23,10 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 	public PicAPixArea picAPixArea;
 	private int width, height;
 	private int a, b; // Szerokosc numerow poziomych, wysokosc numerow pionowych
+
+	public PicAPixPanel() {
+		addMouseListener(this);
+	}
 
 	public void drawArea(final PicAPixArea paArea) {
 		this.picAPixArea = paArea;
@@ -90,7 +97,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 
 				g2d.fillRect(this.a + (i * this.gridSize + i)
 						+ countBoldLines++, 0, 2, this.height);
-				System.out.println(countBoldLines);
+
 			} else {
 				y1 = 0;
 				y2 = this.height - 1;
@@ -113,7 +120,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 				if (number.enable) {
 					g2d.setColor(Color.BLACK);
 				} else {
-					g2d.setColor(Color.GRAY);
+					g2d.setColor(Color.LIGHT_GRAY);
 				}
 
 				// System.out.println(posY * this.gridSize + posY + 1);
@@ -152,7 +159,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 				if (number.enable) {
 					g2d.setColor(Color.BLACK);
 				} else {
-					g2d.setColor(Color.GRAY);
+					g2d.setColor(Color.LIGHT_GRAY);
 				}
 
 				int moveDigitX = 0;
@@ -173,6 +180,39 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 				posX++;
 			}
 			posY++;
+		}
+
+		int boldLineY = 5;
+		int countBoldLinesY = 0;
+
+		// Malowanie kratek
+		for (int i = 0; i < this.picAPixArea.y; i++) {
+			if (boldLineY++ == 5) {
+				boldLineY -= 5;
+				countBoldLinesY++;
+			}
+
+			int boldLineX = 5;
+			int countBoldLinesX = 0;
+			for (int j = 0; j < this.picAPixArea.x; j++) {
+				if (boldLineX++ == 5) {
+					boldLineX -= 5;
+					countBoldLinesX++;
+				}
+
+				if (this.picAPixArea.area[i][j].val != PicAPixArea.ABSENCE) {
+					if (this.picAPixArea.area[i][j].val == PicAPixArea.SELECTED) {
+						g2d.setColor(Color.BLACK);
+					} else {
+						g2d.setColor(Color.GRAY);
+					}
+
+					g2d.fillRect(this.a + countBoldLinesX
+							+ (j * (this.gridSize + 1)) + 1, this.b
+							+ countBoldLinesY + (i * (this.gridSize + 1)) + 1,
+							this.gridSize, this.gridSize);
+				}
+			}
 		}
 	}
 
@@ -196,8 +236,94 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+		int x = e.getX();
+		int y = e.getY();
 
+		// Klikniecie w pusty prostokat
+		if (x - this.a < 0 && y - this.b < 0)
+			return;
+
+		// Klikniecie w kratke
+		if (x - this.a > 0 && y - this.b > 0) {
+			int i = (5 * (y - this.b)) / (5 * this.gridSize + 6);
+			int j = (5 * (x - this.a)) / (5 * this.gridSize + 6);
+
+			int il = i / 5 + 1;
+			int jl = j / 5 + 1;
+
+			if (i * (this.gridSize + 1) + this.b + il != y
+					&& i < this.picAPixArea.y
+					&& j * (this.gridSize + 1) + this.a + jl != x
+					&& j < this.picAPixArea.x) {
+
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					if (picAPixArea.area[i][j].val == PicAPixArea.EMPTY) {
+						picAPixArea.area[i][j].val = PicAPixArea.ABSENCE;
+					} else {
+						picAPixArea.area[i][j].val = PicAPixArea.EMPTY;
+					}
+
+				} else {
+					if (picAPixArea.area[i][j].val == PicAPixArea.SELECTED) {
+						picAPixArea.area[i][j].val = PicAPixArea.ABSENCE;
+					} else {
+						picAPixArea.area[i][j].val = FillAPixArea.SELECTED;
+					}
+				}
+				repaint();
+				return;
+			}
+		}
+
+		// Klikniecie na liczbe pionowa
+		if (x - this.a > 0 && y - this.b < 0) {
+			int i = y / (this.gridSize + 1);
+			int j = (5 * (x - this.a) / (5 * this.gridSize + 6));
+
+			int jl = (j / 5) + 1;
+
+			if (i * (this.gridSize + 1) != y
+					&& j * (this.gridSize + 1) + jl + this.a != x) {
+				List<PicAPixArea.PaNumber> numbers = this.picAPixArea.verticalListsOfNumbers
+						.get(j).numbers;
+				int countVerticalNumbers = numbers.size();
+
+				int iPrim = i - this.picAPixArea.maxVerticalNumbers
+						+ countVerticalNumbers;
+				if (iPrim >= 0) {
+					PicAPixArea.PaNumber number = numbers.get(iPrim);
+					number.enable = !number.enable;
+
+					repaint();
+					return;
+				}
+			}
+		}
+
+		// Klikniecie na liczbe pozioma
+		if (x - this.a < 0 && y - this.b > 0) {
+			int i = (5 * (y - this.b) / (5 * this.gridSize + 6));
+			int j = x / (this.gridSize + 1);
+
+			int il = (i / 5) + 1;
+
+			if (j * (this.gridSize + 1) != x
+					&& i * (this.gridSize + 1) + il + this.b != y) {
+				List<PicAPixArea.PaNumber> numbers = this.picAPixArea.horizontalListsOfNumbers
+						.get(i).numbers;
+				int countHorizontalNumbers = numbers.size();
+
+				int jPrim = j - this.picAPixArea.maxHorizontalNumbers
+						+ countHorizontalNumbers;
+				if (jPrim >= 0) {
+					PicAPixArea.PaNumber number = numbers.get(jPrim);
+					number.enable = !number.enable;
+
+					repaint();
+					return;
+				}
+			}
+		}
 	}
 
 	@Override
