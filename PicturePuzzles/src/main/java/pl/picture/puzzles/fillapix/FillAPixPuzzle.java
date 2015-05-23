@@ -42,13 +42,13 @@ public class FillAPixPuzzle extends Puzzle {
 		// false
 		if (fillAPixArea.checkSolve()) {
 			JOptionPane.showMessageDialog(null,
-					Messages.getString("FillAPixPuzzle.success.text"),
-					Messages.getString("FillAPixPuzzle.success.title.text"),
+					Messages.getString("Puzzle.success.text"),
+					Messages.getString("Puzzle.success.title.text"),
 					JOptionPane.INFORMATION_MESSAGE);
 		} else {
 			JOptionPane.showMessageDialog(null,
-					Messages.getString("FillAPixPuzzle.failure.text"),
-					Messages.getString("FillAPixPuzzle.failure.title.text"),
+					Messages.getString("Puzzle.failure.text"),
+					Messages.getString("Puzzle.failure.title.text"),
 					JOptionPane.ERROR_MESSAGE);
 
 			fillAPixArea.restoreArea();
@@ -66,14 +66,14 @@ public class FillAPixPuzzle extends Puzzle {
 		if (fillAPixArea.solvePuzzle()) {
 			faPanel.repaint();
 			JOptionPane.showMessageDialog(null,
-					Messages.getString("FillAPixPuzzle.success.solved.text"),
-					Messages.getString("FillAPixPuzzle.success.title.text"),
+					Messages.getString("Puzzle.success.solved.text"),
+					Messages.getString("Puzzle.success.title.text"),
 					JOptionPane.INFORMATION_MESSAGE);
 		} else {
 			faPanel.repaint();
 			JOptionPane.showMessageDialog(null,
-					Messages.getString("FillAPixPuzzle.failure.solved.text"),
-					Messages.getString("FillAPixPuzzle.failure.title.text"),
+					Messages.getString("Puzzle.failure.solved.text"),
+					Messages.getString("Puzzle.failure.title.text"),
 					JOptionPane.ERROR_MESSAGE);
 		}
 

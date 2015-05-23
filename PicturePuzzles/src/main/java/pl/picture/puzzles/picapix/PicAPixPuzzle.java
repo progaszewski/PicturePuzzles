@@ -2,9 +2,11 @@ package pl.picture.puzzles.picapix;
 
 import java.io.File;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import pl.picture.puzzles.common.Puzzle;
+import pl.picture.puzzles.windows.Messages;
 
 public class PicAPixPuzzle extends Puzzle {
 
@@ -35,7 +37,22 @@ public class PicAPixPuzzle extends Puzzle {
 
 	@Override
 	public void solve() {
-		// TODO Auto-generated method stub
+		if (paArea == null)
+			return;
+
+		if (paArea.solvePuzzle()) {
+			paPanel.repaint();
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.success.solved.text"),
+					Messages.getString("Puzzle.success.title.text"),
+					JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			paPanel.repaint();
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.failure.solved.text"),
+					Messages.getString("Puzzle.failure.title.text"),
+					JOptionPane.ERROR_MESSAGE);
+		}
 
 	}
 

@@ -62,12 +62,15 @@ public class PicAPixArea {
 					this.maxVerticalNumbers = numbers.length;
 
 				List<PaNumber> paNumber = new ArrayList<PaNumber>();
+
+				int sumOfNumbers = 0;
 				for (int j = 0; j < numbers.length; j++) {
 					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+					sumOfNumbers += Byte.parseByte(numbers[j]);
 				}
 
 				this.verticalListsOfNumbers.add(new ListOfNumber(paNumber,
-						(byte) numbers.length));
+						(byte) numbers.length, sumOfNumbers));
 
 			}
 
@@ -79,12 +82,14 @@ public class PicAPixArea {
 					this.maxHorizontalNumbers = numbers.length;
 
 				List<PaNumber> paNumber = new ArrayList<PaNumber>();
+				int sumOfNumbers = 0;
 				for (int j = 0; j < numbers.length; j++) {
 					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+					sumOfNumbers += Byte.parseByte(numbers[j]);
 				}
 
 				this.horizontalListsOfNumbers.add(new ListOfNumber(paNumber,
-						(byte) numbers.length));
+						(byte) numbers.length, sumOfNumbers));
 			}
 
 		} catch (FileNotFoundException e) {
@@ -92,10 +97,61 @@ public class PicAPixArea {
 		}
 	}
 
+	public boolean solvePuzzle() {
+		int i = 0;
+		// I - szukanie pol, ktore musza zostac zamalowane.
+		// Liczby pionowe:
+		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+			int startPosition = 0;
+			for (PaNumber paNumber : verticalList.numbers) {
+
+				// wyznazcenie N
+				int N = this.y
+						- (verticalList.sumOfNumbers
+								+ verticalList.numbers.size() - 1 - paNumber.val);
+				// 2 * val > N
+				if (2 * paNumber.val > N) {
+					int diff = N - paNumber.val;
+					for (int j = startPosition + diff; j < startPosition
+							+ paNumber.val; j++) {
+						this.area[j][i].val = 1;
+					}
+				}
+				startPosition += paNumber.val + 1;
+			}
+			i++;
+		}
+
+		i = 0;
+		// Liczby poziome:
+		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
+			int startPosition = 0;
+			for (PaNumber paNumber : horizontalList.numbers) {
+
+				// wyznazcenie N
+				int N = this.x
+						- (horizontalList.sumOfNumbers
+								+ horizontalList.numbers.size() - 1 - paNumber.val);
+				// 2 * val > N
+				if (2 * paNumber.val > N) {
+					int diff = N - paNumber.val;
+					for (int j = startPosition + diff; j < startPosition
+							+ paNumber.val; j++) {
+						this.area[i][j].val = 1;
+					}
+				}
+				startPosition += paNumber.val + 1;
+			}
+			i++;
+		}
+
+		return false;
+	}
+
 	// Klasa reprezetujaca pole / kratke na planszy
 	public class Field {
-		public byte val = ABSENCE; // mozliwe wartosc: -1 -- Brak koloru (pole
-									// nie pokolorowane), 0 -- Puste pole
+		public byte val = ABSENCE; // mozliwe wartosci: -1 -- Brak koloru (pole
+									// niepokolorowane), 0 -- Puste pole
 									// (krzyzyk), 1 -- Pole zaznaczone
 									// (pokolorowane)
 
@@ -111,15 +167,19 @@ public class PicAPixArea {
 	// Klasa reprezentujaca liste numerow dla kolumny lub rzedu
 	public class ListOfNumber {
 		public List<PaNumber> numbers;
-		public byte otherNumbers = -1;
+		public byte otherNumbers = -1; // ile pozostalo numerow do wyznaczenia
+										// (pokolorowania)
+		public int sumOfNumbers = -1; // suma wszystkich numerow
 
 		public ListOfNumber() {
 
 		}
 
-		public ListOfNumber(List<PaNumber> numbers, byte otherNumbers) {
+		public ListOfNumber(List<PaNumber> numbers, byte otherNumbers,
+				int sumOfNumbers) {
 			this.numbers = numbers;
 			this.otherNumbers = otherNumbers;
+			this.sumOfNumbers = sumOfNumbers;
 		}
 
 	}
