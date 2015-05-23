@@ -66,7 +66,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 
 	// Rysowanie lamiglowki Pic a Pic - numery pion i pozi oraz siatka
 	private void drawPuzzle(Graphics2D g2d, int linesX, int linesY) {
-		Color gridColor, numColor;
+		// Color gridColor, numColor;
 		int x1, x2, y1, y2;
 
 		int boldLine = 5;
