@@ -204,7 +204,7 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 					if (this.picAPixArea.area[i][j].val == PicAPixArea.SELECTED) {
 						g2d.setColor(Color.BLACK);
 					} else {
-						g2d.setColor(Color.GRAY);
+						g2d.setColor(Color.LIGHT_GRAY);
 					}
 
 					g2d.fillRect(this.a + countBoldLinesX

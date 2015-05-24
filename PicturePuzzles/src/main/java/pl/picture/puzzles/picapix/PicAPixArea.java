@@ -115,6 +115,38 @@ public class PicAPixArea {
 					for (int j = startPosition + diff; j < startPosition
 							+ paNumber.val; j++) {
 						this.area[j][i].val = 1;
+						this.area[j][i].belongsToVertical = paNumber;
+
+						// jezeli dzialamy na pierwszej linii pionowej
+						if (i == 0) {
+							ListOfNumber horizontalList = this.horizontalListsOfNumbers
+									.get(j);
+							PaNumber firstNumber = horizontalList.numbers
+									.get(0);
+							for (int k = 1; k < firstNumber.val; k++) {
+								this.area[j][k].val = 1;
+							}
+							this.area[j][firstNumber.val].val = 0;
+							firstNumber.enable = false;
+							horizontalList.otherNumbers--;
+
+						}
+
+						// jezeli dzialamy na ostatniej linii pionewej
+						if (i == this.x - 1) {
+							ListOfNumber horizontalList = this.horizontalListsOfNumbers
+									.get(j);
+							PaNumber lastNumber = horizontalList.numbers
+									.get(horizontalList.numbers.size() - 1);
+
+							for (int k = this.x - 2; k >= this.x
+									- lastNumber.val; k--) {
+								this.area[j][k].val = 1;
+							}
+							this.area[j][this.x - lastNumber.val - 1].val = 0;
+							lastNumber.enable = false;
+							horizontalList.otherNumbers--;
+						}
 					}
 				}
 				startPosition += paNumber.val + 1;
@@ -138,6 +170,37 @@ public class PicAPixArea {
 					for (int j = startPosition + diff; j < startPosition
 							+ paNumber.val; j++) {
 						this.area[i][j].val = 1;
+						this.area[i][j].belongsToHorizontal = paNumber;
+
+						// jezeli dzialamy na pierwszej linii poziomej
+						if (i == 0) {
+							ListOfNumber verticalList = this.verticalListsOfNumbers
+									.get(j);
+							PaNumber firstNumber = verticalList.numbers.get(0);
+							for (int k = 1; k < firstNumber.val; k++) {
+								this.area[k][j].val = 1;
+							}
+							this.area[firstNumber.val][j].val = 0;
+							firstNumber.enable = false;
+							verticalList.otherNumbers--;
+
+						}
+
+						// jezeli dzialamy na ostatniej linii poziomej
+						if (i == this.y - 1) {
+							ListOfNumber verticalList = this.verticalListsOfNumbers
+									.get(j);
+							PaNumber lastNumber = verticalList.numbers
+									.get(verticalList.numbers.size() - 1);
+
+							for (int k = this.y - 2; k >= this.y
+									- lastNumber.val; k--) {
+								this.area[k][j].val = 1;
+							}
+							this.area[this.y - lastNumber.val - 1][j].val = 0;
+							lastNumber.enable = false;
+							verticalList.otherNumbers--;
+						}
 					}
 				}
 				startPosition += paNumber.val + 1;
@@ -154,6 +217,8 @@ public class PicAPixArea {
 									// niepokolorowane), 0 -- Puste pole
 									// (krzyzyk), 1 -- Pole zaznaczone
 									// (pokolorowane)
+		public PaNumber belongsToVertical;
+		public PaNumber belongsToHorizontal;
 
 		public Field() {
 
