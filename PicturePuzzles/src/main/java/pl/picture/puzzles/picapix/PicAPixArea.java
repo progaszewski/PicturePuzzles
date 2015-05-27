@@ -236,8 +236,7 @@ public class PicAPixArea {
 					continue;
 				}
 				if (field.val == SELECTED) {
-					if (lastType == EMPTY
-							|| (lastType == SELECTED && lastPaNumber != field.belongsToVertical)) {
+					if (lastType == EMPTY) {
 						Length l = new Length(s, e - 1, lastType);
 						if (lastPaNumber != null) {
 							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
@@ -248,6 +247,21 @@ public class PicAPixArea {
 						lastType = field.val;
 
 						s = e = j + 1;
+						continue;
+					}
+					if (lastType == SELECTED
+							&& lastPaNumber != field.belongsToHorizontal) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						horizontalList.lengths.add(l);
+						lastPaNumber = field.belongsToHorizontal;
+						lastType = field.val;
+
+						s = j;
+						e = j + 1;
 						continue;
 					}
 
