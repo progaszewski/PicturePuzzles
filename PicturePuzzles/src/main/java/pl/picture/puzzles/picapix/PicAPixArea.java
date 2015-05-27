@@ -208,6 +208,209 @@ public class PicAPixArea {
 			i++;
 		}
 
+		// II - laczenie odcinkow "czarnych" oraz wyznaczanie odcinkow "szarych"
+		// Linie pionowe
+		i = 0;
+		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+			verticalList.lengths = new ArrayList<Length>();
+
+			// Wyznaczenie odcinkow
+			int s = 0, e = 0;
+			int lastType = ABSENCE;
+			PaNumber lastPaNumber = null;
+			for (int j = 0; j < this.y; j++) {
+				Field field = this.area[j][i];
+				if (field.val == ABSENCE) {
+					if (lastType != field.val) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						verticalList.lengths.add(l);
+						lastPaNumber = null;
+						lastType = field.val;
+					}
+					lastType = field.val;
+					s = e = j + 1;
+					continue;
+				}
+				if (field.val == SELECTED) {
+					if (lastType == EMPTY
+							|| (lastType == SELECTED && lastPaNumber != field.belongsToVertical)) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						verticalList.lengths.add(l);
+						lastPaNumber = field.belongsToVertical;
+						lastType = field.val;
+
+						s = e = j + 1;
+						continue;
+					}
+
+					lastPaNumber = field.belongsToVertical;
+					lastType = field.val;
+					e = j + 1;
+					continue;
+				}
+
+				if (field.val == EMPTY) {
+					if (lastType == SELECTED) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						verticalList.lengths.add(l);
+						lastPaNumber = field.belongsToVertical;
+						lastType = field.val;
+
+						s = e = j + 1;
+						continue;
+					}
+					lastPaNumber = field.belongsToVertical;
+					lastType = field.val;
+					e = j + 1;
+					continue;
+				}
+			}
+
+			// DEBUG
+			// for (Length l : verticalList.lengths) {
+			// String open, close;
+			// if (l.type == SELECTED) {
+			// open = "<";
+			// close = ">";
+			// } else {
+			// open = "(";
+			// close = ")";
+			// }
+			// String belongsTo;
+			// if (l.listOfNumbersToBelong == null) {
+			// belongsTo = " nalezy do: NULL";
+			// } else {
+			// belongsTo = " nelezu do: "
+			// + l.listOfNumbersToBelong.get(0).val;
+			// }
+			//
+			// System.out.println(i + ": " + open + l.s + ", " + l.e + close
+			// + belongsTo);
+			// }
+			// System.out.println();
+			i++;
+		}
+
+		// Linie poziome
+		i = 0;
+		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
+			horizontalList.lengths = new ArrayList<Length>();
+
+			// Wyznaczenie odcinkow
+			int s = 0, e = 0;
+			int lastType = ABSENCE;
+			PaNumber lastPaNumber = null;
+			for (int j = 0; j < this.x; j++) {
+				Field field = this.area[i][j];
+				if (field.val == ABSENCE) {
+					if (lastType != field.val) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						horizontalList.lengths.add(l);
+						lastPaNumber = null;
+						lastType = field.val;
+					}
+					lastType = field.val;
+					s = e = j + 1;
+					continue;
+				}
+				if (field.val == SELECTED) {
+					if (lastType == EMPTY) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						horizontalList.lengths.add(l);
+						lastPaNumber = field.belongsToHorizontal;
+						lastType = field.val;
+
+						s = e = j + 1;
+						continue;
+					}
+					if (lastType == SELECTED
+							&& lastPaNumber != field.belongsToHorizontal) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						horizontalList.lengths.add(l);
+						lastPaNumber = field.belongsToHorizontal;
+						lastType = field.val;
+
+						s = j;
+						e = j + 1;
+						continue;
+					}
+
+					lastPaNumber = field.belongsToHorizontal;
+					lastType = field.val;
+					e = j + 1;
+					continue;
+				}
+
+				if (field.val == EMPTY) {
+					if (lastType == SELECTED) {
+						Length l = new Length(s, e - 1, lastType);
+						if (lastPaNumber != null) {
+							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+							l.listOfNumbersToBelong.add(lastPaNumber);
+						}
+						horizontalList.lengths.add(l);
+						lastPaNumber = field.belongsToHorizontal;
+						lastType = field.val;
+
+						s = e = j + 1;
+						continue;
+					}
+					lastPaNumber = field.belongsToHorizontal;
+					lastType = field.val;
+					e = j + 1;
+					continue;
+				}
+			}
+
+			// DEBUG
+			for (Length l : horizontalList.lengths) {
+				String open, close;
+				if (l.type == SELECTED) {
+					open = "<";
+					close = ">";
+				} else {
+					open = "(";
+					close = ")";
+				}
+				String belongsTo;
+				if (l.listOfNumbersToBelong == null) {
+					belongsTo = " nalezy do: NULL";
+				} else {
+					belongsTo = " nelezy do: "
+							+ l.listOfNumbersToBelong.get(0).val;
+				}
+
+				System.out.println(i + ": " + open + l.s + ", " + l.e + close
+						+ belongsTo);
+			}
+			System.out.println();
+			i++;
+		}
+
 		return false;
 	}
 
@@ -235,6 +438,7 @@ public class PicAPixArea {
 		public byte otherNumbers = -1; // ile pozostalo numerow do wyznaczenia
 										// (pokolorowania)
 		public int sumOfNumbers = -1; // suma wszystkich numerow
+		public List<Length> lengths;
 
 		public ListOfNumber() {
 
@@ -253,6 +457,8 @@ public class PicAPixArea {
 	public class PaNumber {
 		public byte val = 0; // Wartosc liczby
 		public boolean enable = true; // Czy liczba aktywna
+		public int[] scope = new int[2]; // Okreslenie zakresu mozliwego
+											// wystapienia liczby
 
 		public PaNumber() {
 
@@ -260,6 +466,26 @@ public class PicAPixArea {
 
 		public PaNumber(byte val) {
 			this.val = val;
+		}
+	}
+
+	// Odcinek
+	public class Length {
+
+		public int s; // Start
+		public int e; // Koniec (end)
+		public int type; // typ odcinka: 1 - "SELECTED", 0 - "EMPTY"
+		public List<PaNumber> listOfNumbersToBelong; // lista numerów, które
+														// należą do odcinka
+
+		public Length() {
+
+		}
+
+		public Length(int s, int e, int type) {
+			this.s = s;
+			this.e = e;
+			this.type = type;
 		}
 	}
 }
