@@ -97,6 +97,14 @@ public class PicAPixArea {
 		}
 	}
 
+	private List<Length> determiningOfLengths(ListOfNumber numberList,
+			String type) {
+		List<Length> lengths = new ArrayList<Length>();
+
+		return lengths;
+
+	}
+
 	public boolean solvePuzzle() {
 		int i = 0;
 		// I - szukanie pol, ktore musza zostac zamalowane.
