@@ -97,12 +97,219 @@ public class PicAPixArea {
 		}
 	}
 
-	private List<Length> determiningOfLengths(ListOfNumber numberList,
-			String type) {
-		List<Length> lengths = new ArrayList<Length>();
+	// metoda wyznaczająca narysowane odcinki
+	private void determiningOfLengths(ListOfNumber numberList,
+			boolean isVertical, int i) {
 
-		return lengths;
+		numberList.lengths = new ArrayList<Length>();
+		int n;
 
+		if (isVertical) {
+			n = this.y;
+		} else {
+			n = this.x;
+		}
+
+		int s = 0, e = 0;
+		int lastType = ABSENCE;
+		PaNumber lastPaNumber = null;
+		for (int j = 0; j < n; j++) {
+
+			Field field;
+			PaNumber belongsToNumber;
+			if (isVertical) {
+				field = this.area[j][i];
+				belongsToNumber = field.belongsToVertical;
+			} else {
+				field = this.area[i][j];
+				belongsToNumber = field.belongsToHorizontal;
+			}
+
+			if (field.val == ABSENCE) {
+				if (lastType != field.val) {
+					Length l = new Length(s, e - 1, lastType);
+					if (lastPaNumber != null) {
+						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+						l.listOfNumbersToBelong.add(lastPaNumber);
+					}
+					numberList.lengths.add(l);
+					lastPaNumber = null;
+					lastType = field.val;
+				}
+				lastType = field.val;
+				s = e = j + 1;
+				continue;
+			}
+			if (field.val == SELECTED) {
+				if (lastType == EMPTY) {
+					Length l = new Length(s, e - 1, lastType);
+					if (lastPaNumber != null) {
+						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+						l.listOfNumbersToBelong.add(lastPaNumber);
+					}
+					numberList.lengths.add(l);
+					lastPaNumber = belongsToNumber;
+					lastType = field.val;
+
+					s = e = j + 1;
+					continue;
+				}
+				if (lastType == SELECTED && lastPaNumber != belongsToNumber) {
+					Length l = new Length(s, e - 1, lastType);
+					if (lastPaNumber != null) {
+						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+						l.listOfNumbersToBelong.add(lastPaNumber);
+					}
+					numberList.lengths.add(l);
+					lastPaNumber = belongsToNumber;
+					lastType = field.val;
+
+					s = j;
+					e = j + 1;
+					continue;
+				}
+
+				lastPaNumber = belongsToNumber;
+				lastType = field.val;
+				e = j + 1;
+				continue;
+			}
+
+			if (field.val == EMPTY) {
+				if (lastType == SELECTED) {
+					Length l = new Length(s, e - 1, lastType);
+					if (lastPaNumber != null) {
+						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+						l.listOfNumbersToBelong.add(lastPaNumber);
+					}
+					numberList.lengths.add(l);
+					lastPaNumber = belongsToNumber;
+					lastType = field.val;
+
+					s = e = j + 1;
+					continue;
+				}
+				lastPaNumber = belongsToNumber;
+				lastType = field.val;
+				e = j + 1;
+				continue;
+			}
+		}
+
+		// DEBUG
+		for (Length l : numberList.lengths) {
+			String open, close;
+			if (l.type == SELECTED) {
+				open = "<";
+				close = ">";
+			} else {
+				open = "(";
+				close = ")";
+			}
+			String belongsTo;
+			if (l.listOfNumbersToBelong == null) {
+				belongsTo = " nalezy do: NULL";
+			} else {
+				belongsTo = " nelezy do: " + l.listOfNumbersToBelong.get(0).val;
+			}
+
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close
+					+ belongsTo);
+		}
+		// DEBUG
+		System.out.println();
+
+	}
+
+	// I etap - malowanie pewnych pol
+	private void firstStep(ListOfNumber numberList, boolean isVertical, int i) {
+
+		int n, nPrim;
+		List<ListOfNumber> listsOfNumbers;
+		if (isVertical) {
+			n = this.y;
+			nPrim = this.x;
+			listsOfNumbers = this.horizontalListsOfNumbers;
+		} else {
+			n = this.x;
+			nPrim = this.y;
+			listsOfNumbers = this.verticalListsOfNumbers;
+		}
+
+		int startPosition = 0;
+		for (PaNumber paNumber : numberList.numbers) {
+
+			// wyznazcenie N
+			int N = n
+					- (numberList.sumOfNumbers + numberList.numbers.size() - 1 - paNumber.val);
+			// 2 * val > N
+			if (2 * paNumber.val > N) {
+				int diff = N - paNumber.val;
+				for (int j = startPosition + diff; j < startPosition
+						+ paNumber.val; j++) {
+					if (isVertical) {
+						this.area[j][i].val = 1;
+						this.area[j][i].belongsToVertical = paNumber;
+					} else {
+						this.area[i][j].val = 1;
+						this.area[i][j].belongsToHorizontal = paNumber;
+					}
+
+					// jezeli dzialamy na lewej (pionowej) lub górnej (poziomej)
+					// krawędzi
+					if (i == 0) {
+						// pionowe -> poziome lub poziome -> pionowe
+						ListOfNumber numberListPrim = listsOfNumbers.get(j);
+						PaNumber firstNumber = numberListPrim.numbers.get(0);
+						for (int k = 1; k < firstNumber.val; k++) {
+
+							if (isVertical) {
+								this.area[j][k].val = 1;
+							} else {
+								this.area[k][j].val = 1;
+							}
+
+						}
+						if (isVertical) {
+							this.area[j][firstNumber.val].val = 0;
+						} else {
+							this.area[firstNumber.val][j].val = 0;
+						}
+
+						firstNumber.enable = false;
+						numberListPrim.otherNumbers--;
+
+					}
+
+					// jezeli dzialamy na prawej (pionowej) lub dolnej
+					// (poziomej) krawedzi
+					if (i == nPrim - 1) {
+						// pionowe -> poziome lub poziome -> pionowe
+						ListOfNumber numberListPrim = listsOfNumbers.get(j);
+						PaNumber lastNumber = numberListPrim.numbers
+								.get(numberListPrim.numbers.size() - 1);
+
+						for (int k = nPrim - 2; k >= nPrim - lastNumber.val; k--) {
+							if (isVertical) {
+								this.area[j][k].val = 1;
+							} else {
+								this.area[k][j].val = 1;
+							}
+
+						}
+						if (isVertical) {
+							this.area[j][nPrim - lastNumber.val - 1].val = 0;
+						} else {
+							this.area[nPrim - lastNumber.val - 1][j].val = 0;
+						}
+
+						lastNumber.enable = false;
+						numberListPrim.otherNumbers--;
+					}
+				}
+			}
+			startPosition += paNumber.val + 1;
+		}
 	}
 
 	public boolean solvePuzzle() {
@@ -110,327 +317,28 @@ public class PicAPixArea {
 		// I - szukanie pol, ktore musza zostac zamalowane.
 		// Liczby pionowe:
 		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
-			int startPosition = 0;
-			for (PaNumber paNumber : verticalList.numbers) {
-
-				// wyznazcenie N
-				int N = this.y
-						- (verticalList.sumOfNumbers
-								+ verticalList.numbers.size() - 1 - paNumber.val);
-				// 2 * val > N
-				if (2 * paNumber.val > N) {
-					int diff = N - paNumber.val;
-					for (int j = startPosition + diff; j < startPosition
-							+ paNumber.val; j++) {
-						this.area[j][i].val = 1;
-						this.area[j][i].belongsToVertical = paNumber;
-
-						// jezeli dzialamy na pierwszej linii pionowej
-						if (i == 0) {
-							ListOfNumber horizontalList = this.horizontalListsOfNumbers
-									.get(j);
-							PaNumber firstNumber = horizontalList.numbers
-									.get(0);
-							for (int k = 1; k < firstNumber.val; k++) {
-								this.area[j][k].val = 1;
-							}
-							this.area[j][firstNumber.val].val = 0;
-							firstNumber.enable = false;
-							horizontalList.otherNumbers--;
-
-						}
-
-						// jezeli dzialamy na ostatniej linii pionewej
-						if (i == this.x - 1) {
-							ListOfNumber horizontalList = this.horizontalListsOfNumbers
-									.get(j);
-							PaNumber lastNumber = horizontalList.numbers
-									.get(horizontalList.numbers.size() - 1);
-
-							for (int k = this.x - 2; k >= this.x
-									- lastNumber.val; k--) {
-								this.area[j][k].val = 1;
-							}
-							this.area[j][this.x - lastNumber.val - 1].val = 0;
-							lastNumber.enable = false;
-							horizontalList.otherNumbers--;
-						}
-					}
-				}
-				startPosition += paNumber.val + 1;
-			}
-			i++;
+			firstStep(verticalList, true, i++);
 		}
 
 		i = 0;
 		// Liczby poziome:
 		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-			int startPosition = 0;
-			for (PaNumber paNumber : horizontalList.numbers) {
-
-				// wyznazcenie N
-				int N = this.x
-						- (horizontalList.sumOfNumbers
-								+ horizontalList.numbers.size() - 1 - paNumber.val);
-				// 2 * val > N
-				if (2 * paNumber.val > N) {
-					int diff = N - paNumber.val;
-					for (int j = startPosition + diff; j < startPosition
-							+ paNumber.val; j++) {
-						this.area[i][j].val = 1;
-						this.area[i][j].belongsToHorizontal = paNumber;
-
-						// jezeli dzialamy na pierwszej linii poziomej
-						if (i == 0) {
-							ListOfNumber verticalList = this.verticalListsOfNumbers
-									.get(j);
-							PaNumber firstNumber = verticalList.numbers.get(0);
-							for (int k = 1; k < firstNumber.val; k++) {
-								this.area[k][j].val = 1;
-							}
-							this.area[firstNumber.val][j].val = 0;
-							firstNumber.enable = false;
-							verticalList.otherNumbers--;
-
-						}
-
-						// jezeli dzialamy na ostatniej linii poziomej
-						if (i == this.y - 1) {
-							ListOfNumber verticalList = this.verticalListsOfNumbers
-									.get(j);
-							PaNumber lastNumber = verticalList.numbers
-									.get(verticalList.numbers.size() - 1);
-
-							for (int k = this.y - 2; k >= this.y
-									- lastNumber.val; k--) {
-								this.area[k][j].val = 1;
-							}
-							this.area[this.y - lastNumber.val - 1][j].val = 0;
-							lastNumber.enable = false;
-							verticalList.otherNumbers--;
-						}
-					}
-				}
-				startPosition += paNumber.val + 1;
-			}
-			i++;
+			firstStep(horizontalList, false, i++);
 		}
 
 		// II - laczenie odcinkow "czarnych" oraz wyznaczanie odcinkow "szarych"
 		// Linie pionowe
 		i = 0;
 		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
-			verticalList.lengths = new ArrayList<Length>();
 
-			// Wyznaczenie odcinkow
-			int s = 0, e = 0;
-			int lastType = ABSENCE;
-			PaNumber lastPaNumber = null;
-			for (int j = 0; j < this.y; j++) {
-				Field field = this.area[j][i];
-				if (field.val == ABSENCE) {
-					if (lastType != field.val) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						verticalList.lengths.add(l);
-						lastPaNumber = null;
-						lastType = field.val;
-					}
-					lastType = field.val;
-					s = e = j + 1;
-					continue;
-				}
-				if (field.val == SELECTED) {
-					if (lastType == EMPTY) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						verticalList.lengths.add(l);
-						lastPaNumber = field.belongsToVertical;
-						lastType = field.val;
-
-						s = e = j + 1;
-						continue;
-					}
-					if (lastType == SELECTED
-							&& lastPaNumber != field.belongsToVertical) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						verticalList.lengths.add(l);
-						lastPaNumber = field.belongsToVertical;
-						lastType = field.val;
-
-						s = j;
-						e = j + 1;
-						continue;
-					}
-
-					lastPaNumber = field.belongsToVertical;
-					lastType = field.val;
-					e = j + 1;
-					continue;
-				}
-
-				if (field.val == EMPTY) {
-					if (lastType == SELECTED) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						verticalList.lengths.add(l);
-						lastPaNumber = field.belongsToVertical;
-						lastType = field.val;
-
-						s = e = j + 1;
-						continue;
-					}
-					lastPaNumber = field.belongsToVertical;
-					lastType = field.val;
-					e = j + 1;
-					continue;
-				}
-			}
-
-			// DEBUG
-			// for (Length l : verticalList.lengths) {
-			// String open, close;
-			// if (l.type == SELECTED) {
-			// open = "<";
-			// close = ">";
-			// } else {
-			// open = "(";
-			// close = ")";
-			// }
-			// String belongsTo;
-			// if (l.listOfNumbersToBelong == null) {
-			// belongsTo = " nalezy do: NULL";
-			// } else {
-			// belongsTo = " nelezu do: "
-			// + l.listOfNumbersToBelong.get(0).val;
-			// }
-			//
-			// System.out.println(i + ": " + open + l.s + ", " + l.e + close
-			// + belongsTo);
-			// }
-			// System.out.println();
-			i++;
+			determiningOfLengths(verticalList, true, i++);
 		}
 
 		// Linie poziome
 		i = 0;
 		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-			horizontalList.lengths = new ArrayList<Length>();
 
-			// Wyznaczenie odcinkow
-			int s = 0, e = 0;
-			int lastType = ABSENCE;
-			PaNumber lastPaNumber = null;
-			for (int j = 0; j < this.x; j++) {
-				Field field = this.area[i][j];
-				if (field.val == ABSENCE) {
-					if (lastType != field.val) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						horizontalList.lengths.add(l);
-						lastPaNumber = null;
-						lastType = field.val;
-					}
-					lastType = field.val;
-					s = e = j + 1;
-					continue;
-				}
-				if (field.val == SELECTED) {
-					if (lastType == EMPTY) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						horizontalList.lengths.add(l);
-						lastPaNumber = field.belongsToHorizontal;
-						lastType = field.val;
-
-						s = e = j + 1;
-						continue;
-					}
-					if (lastType == SELECTED
-							&& lastPaNumber != field.belongsToHorizontal) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						horizontalList.lengths.add(l);
-						lastPaNumber = field.belongsToHorizontal;
-						lastType = field.val;
-
-						s = j;
-						e = j + 1;
-						continue;
-					}
-
-					lastPaNumber = field.belongsToHorizontal;
-					lastType = field.val;
-					e = j + 1;
-					continue;
-				}
-
-				if (field.val == EMPTY) {
-					if (lastType == SELECTED) {
-						Length l = new Length(s, e - 1, lastType);
-						if (lastPaNumber != null) {
-							l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-							l.listOfNumbersToBelong.add(lastPaNumber);
-						}
-						horizontalList.lengths.add(l);
-						lastPaNumber = field.belongsToHorizontal;
-						lastType = field.val;
-
-						s = e = j + 1;
-						continue;
-					}
-					lastPaNumber = field.belongsToHorizontal;
-					lastType = field.val;
-					e = j + 1;
-					continue;
-				}
-			}
-
-			// DEBUG
-			for (Length l : horizontalList.lengths) {
-				String open, close;
-				if (l.type == SELECTED) {
-					open = "<";
-					close = ">";
-				} else {
-					open = "(";
-					close = ")";
-				}
-				String belongsTo;
-				if (l.listOfNumbersToBelong == null) {
-					belongsTo = " nalezy do: NULL";
-				} else {
-					belongsTo = " nelezy do: "
-							+ l.listOfNumbersToBelong.get(0).val;
-				}
-
-				System.out.println(i + ": " + open + l.s + ", " + l.e + close
-						+ belongsTo);
-			}
-			System.out.println();
-			i++;
+			determiningOfLengths(horizontalList, false, i++);
 		}
 
 		return false;
