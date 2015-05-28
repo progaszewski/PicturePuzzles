@@ -151,10 +151,11 @@ public class PicAPixArea {
 					lastPaNumber = belongsToNumber;
 					lastType = field.val;
 
-					s = e = j + 1;
+					s = j;
+					e = j + 1;
 					continue;
 				}
-				if (lastType == SELECTED && lastPaNumber != belongsToNumber) {
+				if ((lastType == SELECTED && lastPaNumber != belongsToNumber)) {
 					Length l = new Length(s, e - 1, lastType);
 					if (lastPaNumber != null) {
 						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
@@ -186,7 +187,8 @@ public class PicAPixArea {
 					lastPaNumber = belongsToNumber;
 					lastType = field.val;
 
-					s = e = j + 1;
+					s = j;
+					e = j + 1;
 					continue;
 				}
 				lastPaNumber = belongsToNumber;
