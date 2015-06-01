@@ -240,6 +240,7 @@ public class PicAPixArea {
 			listsOfNumbers = this.verticalListsOfNumbers;
 		}
 
+		System.out.println(i + ":");
 		int startPosition = 0;
 		for (PaNumber paNumber : numberList.numbers) {
 
@@ -312,8 +313,18 @@ public class PicAPixArea {
 					}
 				}
 			}
+
+			// Wyznaczanie zasięgu liczby
+			paNumber.scope[0] = startPosition;
+			paNumber.scope[1] = n
+					- (numberList.sumOfNumbers - startPosition - paNumber.val + numberList.numbers
+							.size());
+
+			System.out.print(paNumber.val + ": [" + paNumber.scope[0] + ","
+					+ paNumber.scope[1] + "] ");
 			startPosition += paNumber.val + 1;
 		}
+		System.out.println("\n");
 	}
 
 	public boolean solvePuzzle() {
