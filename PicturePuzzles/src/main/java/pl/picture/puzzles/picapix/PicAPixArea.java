@@ -185,6 +185,11 @@ public class PicAPixArea {
 						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
 						l.listOfNumbersToBelong.add(lastPaNumber);
 					}
+					if (l.listOfNumbersToBelong.size() == 1
+							&& (l.e - l.s + 1) == l.listOfNumbersToBelong
+									.get(0).val) {
+						l.isComplete = true;
+					}
 					numberList.lengths.add(l);
 					lastPaNumber = belongsToNumber;
 					lastType = field.val;
@@ -275,15 +280,18 @@ public class PicAPixArea {
 						// pionowe -> poziome lub poziome -> pionowe
 						ListOfNumber numberListPrim = listsOfNumbers.get(j);
 						PaNumber firstNumber = numberListPrim.numbers.get(0);
-						for (int k = 1; k < firstNumber.val; k++) {
+						for (int k = 0; k < firstNumber.val; k++) {
 
 							if (isVertical) {
 								this.area[j][k].val = 1;
+								this.area[j][k].belongsToHorizontal = firstNumber;
 							} else {
 								this.area[k][j].val = 1;
+								this.area[k][j].belongsToVertical = firstNumber;
 							}
 
 						}
+						// Kolorownie natępnej kratki na "czaro"
 						if (isVertical) {
 							this.area[j][firstNumber.val].val = 0;
 						} else {
@@ -303,14 +311,18 @@ public class PicAPixArea {
 						PaNumber lastNumber = numberListPrim.numbers
 								.get(numberListPrim.numbers.size() - 1);
 
-						for (int k = nPrim - 2; k >= nPrim - lastNumber.val; k--) {
+						for (int k = nPrim - 1; k >= nPrim - lastNumber.val; k--) {
+
 							if (isVertical) {
 								this.area[j][k].val = 1;
+								this.area[j][k].belongsToHorizontal = lastNumber;
 							} else {
 								this.area[k][j].val = 1;
+								this.area[k][j].belongsToVertical = lastNumber;
 							}
 
 						}
+						// Kolorownie natępnej kratki na "czaro"
 						if (isVertical) {
 							this.area[j][nPrim - lastNumber.val - 1].val = 0;
 						} else {
@@ -334,6 +346,11 @@ public class PicAPixArea {
 			startPosition += paNumber.val + 1;
 		}
 		System.out.println("\n");
+	}
+
+	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
+			int i) {
+
 	}
 
 	public boolean solvePuzzle() {
@@ -431,6 +448,7 @@ public class PicAPixArea {
 		public int type; // typ odcinka: 1 - "SELECTED", 0 - "EMPTY"
 		public List<PaNumber> listOfNumbersToBelong; // lista numerów, które
 														// należą do odcinka
+		public boolean isComplete = false; // czy odcinek kompletny
 
 		public Length() {
 
