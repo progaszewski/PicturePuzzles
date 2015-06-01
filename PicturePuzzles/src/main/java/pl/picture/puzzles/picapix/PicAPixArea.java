@@ -143,7 +143,7 @@ public class PicAPixArea {
 			if (field.val == SELECTED) {
 				if (lastType == EMPTY) {
 
-					Length l = new Length(s, e, lastType);
+					Length l = new Length(s, e - 1, lastType);
 					if (lastPaNumber != null) {
 						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
 						l.listOfNumbersToBelong.add(lastPaNumber);
@@ -180,7 +180,7 @@ public class PicAPixArea {
 			if (field.val == EMPTY) {
 				if (lastType == SELECTED) {
 
-					Length l = new Length(s, e, lastType);
+					Length l = new Length(s, e - 1, lastType);
 					if (lastPaNumber != null) {
 						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
 						l.listOfNumbersToBelong.add(lastPaNumber);
@@ -198,6 +198,15 @@ public class PicAPixArea {
 				e = j + 1;
 				continue;
 			}
+		}
+
+		if (lastType == SELECTED || lastType == EMPTY) {
+			Length l = new Length(s, e - 1, lastType);
+			if (lastPaNumber != null) {
+				l.listOfNumbersToBelong = new ArrayList<PaNumber>();
+				l.listOfNumbersToBelong.add(lastPaNumber);
+			}
+			numberList.lengths.add(l);
 		}
 
 		// DEBUG
