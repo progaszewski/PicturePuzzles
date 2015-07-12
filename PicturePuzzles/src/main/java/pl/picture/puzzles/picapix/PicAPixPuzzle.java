@@ -31,7 +31,21 @@ public class PicAPixPuzzle extends Puzzle {
 
 	@Override
 	public void check() {
-		// TODO Auto-generated method stub
+		if (paArea == null)
+			return;
+
+		if (paArea.checkPuzzle()) {
+
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.success.text"),
+					Messages.getString("Puzzle.success.title.text"),
+					JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.failure.text"),
+					Messages.getString("Puzzle.failure.title.text"),
+					JOptionPane.ERROR_MESSAGE);
+		}
 
 	}
 
@@ -60,6 +74,11 @@ public class PicAPixPuzzle extends Puzzle {
 	public void drawPazzle(File f) {
 		this.paArea = new PicAPixArea(f);
 		paPanel.drawArea(paArea);
+	}
+
+	@Override
+	public String getName() {
+		return "Pic-a-Pix";
 	}
 
 }

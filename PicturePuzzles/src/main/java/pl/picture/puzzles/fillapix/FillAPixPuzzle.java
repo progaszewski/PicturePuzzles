@@ -84,4 +84,10 @@ public class FillAPixPuzzle extends Puzzle {
 		fillAPixArea = new FillAPixArea(f);
 		faPanel.drawArea(fillAPixArea);
 	}
+
+	@Override
+	public String getName() {
+		return "Fill-a-Pix";
+
+	}
 }

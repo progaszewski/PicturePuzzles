@@ -20,6 +20,8 @@ public abstract class Puzzle {
 
 	public abstract void drawPazzle(File f);
 
+	public abstract String getName();
+
 	protected File openPuzzle(final String type) {
 		// fc = new JFileChooser(System.getProperty("user.home") + "\\Desktop");
 		// fc = new JFileChooser("E:\\Praca Mgr\\Puzzles");

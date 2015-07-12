@@ -37,4 +37,9 @@ public class LinkAPixPuzzle extends Puzzle {
 
 	}
 
+	@Override
+	public String getName() {
+		return "Link-a-Pix";
+	}
+
 }

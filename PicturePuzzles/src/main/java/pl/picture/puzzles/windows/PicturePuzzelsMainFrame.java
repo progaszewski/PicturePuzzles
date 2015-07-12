@@ -134,6 +134,8 @@ public class PicturePuzzelsMainFrame extends JFrame {
 	}
 
 	private void replacePanel(JPanel panel) {
+		setTitle(Messages.getString("PicturePuzzelsMainFrame.this.title")
+				+ " (" + puzzle.getName() + ")");
 		contentPane.removeAll();
 		contentPane.add(panel);
 		contentPane.repaint();
