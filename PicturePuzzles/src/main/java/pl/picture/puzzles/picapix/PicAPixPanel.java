@@ -200,8 +200,8 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 					countBoldLinesX++;
 				}
 
-				if (this.picAPixArea.area[i][j].val != PicAPixArea.ABSENCE) {
-					if (this.picAPixArea.area[i][j].val == PicAPixArea.SELECTED) {
+				if (this.picAPixArea.area[i][j].type != PicAPixArea.ABSENCE) {
+					if (this.picAPixArea.area[i][j].type == PicAPixArea.SELECTED) {
 						g2d.setColor(Color.BLACK);
 					} else {
 						g2d.setColor(Color.LIGHT_GRAY);
@@ -257,17 +257,17 @@ public class PicAPixPanel extends JPanel implements MouseListener {
 					&& j < this.picAPixArea.x) {
 
 				if (e.getButton() == MouseEvent.BUTTON3) {
-					if (picAPixArea.area[i][j].val == PicAPixArea.EMPTY) {
-						picAPixArea.area[i][j].val = PicAPixArea.ABSENCE;
+					if (picAPixArea.area[i][j].type == PicAPixArea.EMPTY) {
+						picAPixArea.area[i][j].type = PicAPixArea.ABSENCE;
 					} else {
-						picAPixArea.area[i][j].val = PicAPixArea.EMPTY;
+						picAPixArea.area[i][j].type = PicAPixArea.EMPTY;
 					}
 
 				} else {
-					if (picAPixArea.area[i][j].val == PicAPixArea.SELECTED) {
-						picAPixArea.area[i][j].val = PicAPixArea.ABSENCE;
+					if (picAPixArea.area[i][j].type == PicAPixArea.SELECTED) {
+						picAPixArea.area[i][j].type = PicAPixArea.ABSENCE;
 					} else {
-						picAPixArea.area[i][j].val = FillAPixArea.SELECTED;
+						picAPixArea.area[i][j].type = FillAPixArea.SELECTED;
 					}
 				}
 				repaint();
