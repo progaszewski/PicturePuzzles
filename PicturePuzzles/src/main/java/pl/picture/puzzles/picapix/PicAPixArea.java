@@ -120,30 +120,25 @@ public class PicAPixArea {
 		int lastType = ABSENCE;
 		// Zmienna zapamiętująca do jakiej liczby nalożelo ostatnie pole (jeżeli
 		// null to znaczy że należało do żandej)
-		PaNumber lastPaNumber = null;
+		// PaNumber lastPaNumber = null;
 		for (int j = 0; j < n; j++) {
 
 			// Pobranie pola oraz liczby do którego należy (jeżeli null to nie
 			// nalezy do żadnej liczby)
 			Field field;
-			PaNumber belongsToNumber;
+
 			if (isVertical) {
 				field = this.area[j][i];
-				belongsToNumber = field.belongsToVertical;
 			} else {
 				field = this.area[i][j];
-				belongsToNumber = field.belongsToHorizontal;
 			}
 
 			if (field.type == ABSENCE) {
 				if (lastType != field.type) {
-					Length l = new Length(s, e - 1, lastType);
-					if (lastPaNumber != null) {
-						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-						l.listOfNumbersToBelong.add(lastPaNumber);
-					}
+					Length l = new Length(s, e - 1, lastType,
+							numberList.numbers);
+
 					numberList.lengths.add(l);
-					lastPaNumber = null;
 					lastType = field.type;
 				}
 				lastType = field.type;
@@ -153,37 +148,16 @@ public class PicAPixArea {
 			if (field.type == SELECTED) {
 				if (lastType == EMPTY) {
 
-					Length l = new Length(s, e - 1, lastType);
-					if (lastPaNumber != null) {
-						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-						l.listOfNumbersToBelong.add(lastPaNumber);
-					}
+					Length l = new Length(s, e - 1, lastType,
+							numberList.numbers);
+
 					numberList.lengths.add(l);
-					lastPaNumber = belongsToNumber;
 					lastType = field.type;
 
 					s = j;
 					e = j + 1;
 					continue;
 				}
-				// Jeżeli ostatnie pole też było pokolorowane na czarno ale
-				// należało do innego pola to wyznacz odcinek
-				if ((lastType == SELECTED && lastPaNumber != belongsToNumber)) {
-					Length l = new Length(s, e - 1, lastType);
-					if (lastPaNumber != null) {
-						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-						l.listOfNumbersToBelong.add(lastPaNumber);
-					}
-					numberList.lengths.add(l);
-					lastPaNumber = belongsToNumber;
-					lastType = field.type;
-
-					s = j;
-					e = j + 1;
-					continue;
-				}
-
-				lastPaNumber = belongsToNumber;
 				lastType = field.type;
 				e = j + 1;
 				continue;
@@ -192,11 +166,8 @@ public class PicAPixArea {
 			if (field.type == EMPTY) {
 				if (lastType == SELECTED) {
 
-					Length l = new Length(s, e - 1, lastType);
-					if (lastPaNumber != null) {
-						l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-						l.listOfNumbersToBelong.add(lastPaNumber);
-					}
+					Length l = new Length(s, e - 1, lastType,
+							numberList.numbers);
 
 					// Później do sprwadzenia czy działa!!
 					// Sprawdza czy długość wyznaczonego odcinka zgadza się z
@@ -209,14 +180,13 @@ public class PicAPixArea {
 						l.isComplete = true;
 					}
 					numberList.lengths.add(l);
-					lastPaNumber = belongsToNumber;
+
 					lastType = field.type;
 
 					s = j;
 					e = j + 1;
 					continue;
 				}
-				lastPaNumber = belongsToNumber;
 				lastType = field.type;
 				e = j + 1;
 				continue;
@@ -224,11 +194,8 @@ public class PicAPixArea {
 		}
 
 		if (lastType == SELECTED || lastType == EMPTY) {
-			Length l = new Length(s, e - 1, lastType);
-			if (lastPaNumber != null) {
-				l.listOfNumbersToBelong = new ArrayList<PaNumber>();
-				l.listOfNumbersToBelong.add(lastPaNumber);
-			}
+			Length l = new Length(s, e - 1, lastType, numberList.numbers);
+
 			numberList.lengths.add(l);
 		}
 
@@ -246,7 +213,10 @@ public class PicAPixArea {
 			if (l.listOfNumbersToBelong == null) {
 				belongsTo = " nalezy do: NULL";
 			} else {
-				belongsTo = " nelezy do: " + l.listOfNumbersToBelong.get(0).val;
+				belongsTo = " nelezy do: ";
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					belongsTo = belongsTo + number.val + ", ";
+				}
 			}
 
 			System.out.println(i + ": " + open + l.s + ", " + l.e + close
@@ -255,6 +225,7 @@ public class PicAPixArea {
 		// DEBUG
 		System.out.println();
 
+		// actionOnLengths(numberList, isVertical, i);
 	}
 
 	// I etap - malowanie pewnych pol oraz wyznaczanie zasięgu liczby
@@ -369,6 +340,21 @@ public class PicAPixArea {
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
 			int i) {
 
+		for (int k = 0; k < numberList.lengths.size(); k++) {
+			Length l = numberList.lengths.get(k);
+
+			// Wyznaczanie do jakich liczb należy odcinek
+			for (PaNumber number : numberList.numbers) {
+
+				// Jeżeli
+				if (l.s > number.scope[1]) {
+					continue;
+				}
+				if (l.e < number.scope[0]) {
+					break;
+				}
+			}
+		}
 	}
 
 	public boolean solvePuzzle() {
@@ -583,8 +569,8 @@ public class PicAPixArea {
 	// Odcinek
 	public class Length {
 
-		public int s; // Start
-		public int e; // Koniec (end)
+		public int s; // Start odcinka
+		public int e; // Koniec odcinka (end)
 		public int type; // typ odcinka: 1 - "SELECTED", 0 - "EMPTY"
 		public List<PaNumber> listOfNumbersToBelong; // lista numerów, które
 														// należą do odcinka
@@ -594,10 +580,53 @@ public class PicAPixArea {
 
 		}
 
-		public Length(int s, int e, int type) {
+		public Length(int s, int e, int type, List<PaNumber> numbers) {
 			this.s = s;
 			this.e = e;
 			this.type = type;
+
+			if (type == SELECTED) {
+
+				// Wyznaczenie do jakich liczb należy odcinek
+				for (PaNumber number : numbers) {
+					// Jeżeli zasięg liczby jest
+					if (s - 1 > number.scope[1]) {
+						continue;
+					}
+
+					if (e + 1 < number.scope[0]) {
+						break;
+					}
+
+					if (number.scope[0] < (s - 1) && number.scope[1] >= (s - 1)
+							&& number.scope[1] < e) {
+
+						number.scope[1] = s - 2;
+						continue;
+					}
+
+					if (number.scope[1] > (e + 1) && number.scope[0] <= e + 1
+							&& number.scope[0] > s) {
+
+						number.scope[0] = e + 2;
+						continue;
+					}
+
+					if (number.scope[0] <= s && number.scope[1] >= e) {
+
+						if (this.listOfNumbersToBelong == null) {
+							this.listOfNumbersToBelong = new ArrayList<PaNumber>();
+						}
+
+						this.listOfNumbersToBelong.add(number);
+						continue;
+					}
+
+					System.err.println("Błąd! [" + number.scope[1] + ", "
+							+ number.scope[1] + "], <" + s + ", " + e
+							+ ">, type:" + type);
+				}
+			}
 		}
 	}
 
