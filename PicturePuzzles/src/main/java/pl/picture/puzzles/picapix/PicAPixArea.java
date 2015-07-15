@@ -361,7 +361,7 @@ public class PicAPixArea {
 					// Jezeli następny lNext należy do takiej samej liczby co l
 					// i tylko do niej to scal odcinki
 					if (lNext.listOfNumbersToBelong.size() == 1
-							& lNext.listOfNumbersToBelong.get(0) == l.listOfNumbersToBelong
+							&& lNext.listOfNumbersToBelong.get(0) == l.listOfNumbersToBelong
 									.get(0)) {
 
 						// Pokolorowanie scalonego odcinke
