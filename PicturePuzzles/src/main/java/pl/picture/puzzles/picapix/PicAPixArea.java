@@ -199,6 +199,8 @@ public class PicAPixArea {
 			numberList.lengths.add(l);
 		}
 
+		actionOnLengths(numberList, isVertical, i);
+
 		// DEBUG
 		for (Length l : numberList.lengths) {
 			String open, close;
@@ -225,7 +227,6 @@ public class PicAPixArea {
 		// DEBUG
 		System.out.println();
 
-		// actionOnLengths(numberList, isVertical, i);
 	}
 
 	// I etap - malowanie pewnych pol oraz wyznaczanie zasięgu liczby
@@ -340,19 +341,70 @@ public class PicAPixArea {
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
 			int i) {
 
-		for (int k = 0; k < numberList.lengths.size(); k++) {
-			Length l = numberList.lengths.get(k);
+		List<Length> lengths = numberList.lengths;
+		int k = 0; // wskaźnik na odcinek
+		// wielkość listy odcinków (może się zmieniać podczas przebiegu pętli
+		int size = lengths.size();
 
-			// Wyznaczanie do jakich liczb należy odcinek
-			for (PaNumber number : numberList.numbers) {
+		while (k < size) {
+			Length l = lengths.get(k);
 
-				// Jeżeli
-				if (l.s > number.scope[1]) {
-					continue;
+			if (l.type == EMPTY) {
+				k++;
+				continue;
+			}
+
+			if (l.listOfNumbersToBelong.size() == 1) {
+				// Jezeli istnieje nastepny odcinek
+				if (k + 1 < size) {
+					Length lNext = lengths.get(k + 1);
+					// Jezeli następny lNext należy do takiej samej liczby co l
+					// i tylko do niej to scal odcinki
+					if (lNext.listOfNumbersToBelong.size() == 1
+							& lNext.listOfNumbersToBelong.get(0) == l.listOfNumbersToBelong
+									.get(0)) {
+
+						// Pokolorowanie scalonego odcinke
+						for (int j = l.e + 1; j < lNext.e; j++) {
+
+							if (isVertical) {
+								this.area[j][i].type = SELECTED;
+							} else {
+								this.area[i][j].type = SELECTED;
+							}
+						}
+						// Scalenie odcinka l z lNext
+						l.e = lNext.e;
+						lengths.remove(lNext);
+						size--;
+					}
 				}
-				if (l.e < number.scope[0]) {
-					break;
+				// Pobranie referancji liczby zależnej od odcinka
+				PaNumber numberOfL = l.listOfNumbersToBelong.get(0);
+
+				// Sprawdzenie czy zmieia się zasięg liczby
+				if (l.s + numberOfL.val - 1 < numberOfL.scope[1]
+						|| l.e - numberOfL.val + 1 > numberOfL.scope[0]) {
+
+					numberOfL.scope[0] = l.e - numberOfL.val + 1;
+					numberOfL.scope[1] = l.s + numberOfL.val - 1;
+
+					changeBelongsToNumberForLengths(lengths, numberOfL);
 				}
+			}
+			k++;
+		}
+	}
+
+	// Zmiana zależności od liczby dla odcinków
+	private void changeBelongsToNumberForLengths(List<Length> lengths,
+			PaNumber number) {
+		for (Length length : lengths) {
+			if (length.type == EMPTY)
+				continue;
+
+			if (length.s < number.scope[0] || length.e > number.scope[1]) {
+				length.listOfNumbersToBelong.remove(number);
 			}
 		}
 	}
