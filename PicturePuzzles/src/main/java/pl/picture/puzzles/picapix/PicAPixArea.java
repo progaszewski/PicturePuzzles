@@ -65,7 +65,15 @@ public class PicAPixArea {
 
 				int sumOfNumbers = 0;
 				for (int j = 0; j < numbers.length; j++) {
-					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+					PaNumber number = new PaNumber(Byte.parseByte(numbers[j]));
+					if (j == 0) {
+						number.first = true;
+					}
+					if (j == numbers.length - 1) {
+						number.last = true;
+					}
+
+					paNumber.add(number);
 					sumOfNumbers += Byte.parseByte(numbers[j]);
 				}
 
@@ -84,7 +92,15 @@ public class PicAPixArea {
 				List<PaNumber> paNumber = new ArrayList<PaNumber>();
 				int sumOfNumbers = 0;
 				for (int j = 0; j < numbers.length; j++) {
-					paNumber.add(new PaNumber(Byte.parseByte(numbers[j])));
+					PaNumber number = new PaNumber(Byte.parseByte(numbers[j]));
+					if (j == 0) {
+						number.first = true;
+					}
+					if (j == numbers.length - 1) {
+						number.last = true;
+					}
+
+					paNumber.add(number);
 					sumOfNumbers += Byte.parseByte(numbers[j]);
 				}
 
@@ -217,7 +233,8 @@ public class PicAPixArea {
 			} else {
 				belongsTo = " nelezy do: ";
 				for (PaNumber number : l.listOfNumbersToBelong) {
-					belongsTo = belongsTo + number.val + ", ";
+					belongsTo = belongsTo + number.val + ": ["
+							+ number.scope[0] + ", " + number.scope[1] + "], ";
 				}
 			}
 
@@ -244,7 +261,7 @@ public class PicAPixArea {
 			listsOfNumbers = this.verticalListsOfNumbers;
 		}
 
-		System.out.println(i + ":");
+		// System.out.println(i + ":");
 		int startPosition = 0;
 		for (PaNumber paNumber : numberList.numbers) {
 
@@ -264,7 +281,8 @@ public class PicAPixArea {
 						this.area[i][j].belongsToHorizontal = paNumber;
 					}
 
-					// jezeli dzialamy na lewej (pionowej) lub górnej (poziomej)
+					// jezeli dzialamy na lewej (pionowej) lub górnej
+					// (poziomej)
 					// krawędzi
 					if (i == 0) {
 						// pionowe -> poziome lub poziome -> pionowe
@@ -288,7 +306,12 @@ public class PicAPixArea {
 							this.area[firstNumber.val][j].type = 0;
 						}
 
-						firstNumber.enable = false;
+						setNumberEnableToFalse(numberListPrim.numbers,
+								firstNumber, 0);
+						// firstNumber.enable = false;
+
+						firstNumber.scope[0] = 0;
+						firstNumber.scope[1] = firstNumber.val - 1;
 						numberListPrim.otherNumbers--;
 
 					}
@@ -319,7 +342,12 @@ public class PicAPixArea {
 							this.area[nPrim - lastNumber.val - 1][j].type = 0;
 						}
 
-						lastNumber.enable = false;
+						setNumberEnableToFalse(numberListPrim.numbers,
+								lastNumber, numberListPrim.numbers.size() - 1);
+						// lastNumber.enable = false;
+
+						lastNumber.scope[0] = nPrim - lastNumber.val;
+						lastNumber.scope[1] = nPrim - 1;
 						numberListPrim.otherNumbers--;
 					}
 				}
@@ -331,15 +359,23 @@ public class PicAPixArea {
 					- (numberList.sumOfNumbers - startPosition - paNumber.val + numberList.numbers
 							.size());
 
-			System.out.print(paNumber.val + ": [" + paNumber.scope[0] + ","
-					+ paNumber.scope[1] + "] ");
+			/*
+			 * System.out.print(paNumber.val + ": [" + paNumber.scope[0] + "," +
+			 * paNumber.scope[1] + "] ");
+			 */
 			startPosition += paNumber.val + 1;
 		}
-		System.out.println("\n");
+		// System.out.println("\n");
 	}
 
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
 			int i) {
+
+		int n = 0;
+		if (isVertical)
+			n = this.y;
+		else
+			n = this.x;
 
 		List<Length> lengths = numberList.lengths;
 		int k = 0; // wskaźnik na odcinek
@@ -382,14 +418,27 @@ public class PicAPixArea {
 				// Pobranie referancji liczby zależnej od odcinka
 				PaNumber numberOfL = l.listOfNumbersToBelong.get(0);
 
-				// Sprawdzenie czy zmieia się zasięg liczby
+				// Sprawdzenie czy zmienia się zasięg liczby
 				if (l.s + numberOfL.val - 1 < numberOfL.scope[1]
 						|| l.e - numberOfL.val + 1 > numberOfL.scope[0]) {
 
-					numberOfL.scope[0] = l.e - numberOfL.val + 1;
-					numberOfL.scope[1] = l.s + numberOfL.val - 1;
+					// System.out.print("Przed: ");
+					// System.out.println(numberOfL);
 
+					if (l.e - numberOfL.val + 1 < 0) {
+						numberOfL.scope[0] = 0;
+					} else {
+						numberOfL.scope[0] = l.e - numberOfL.val + 1;
+					}
+
+					if (l.s + numberOfL.val - 1 > n - 1) {
+						numberOfL.scope[1] = n - 1;
+					} else {
+						numberOfL.scope[1] = l.s + numberOfL.val - 1;
+					}
 					changeBelongsToNumberForLengths(lengths, numberOfL);
+					// System.out.print("Po: ");
+					// System.out.println(numberOfL);
 				}
 			}
 			k++;
@@ -551,6 +600,28 @@ public class PicAPixArea {
 		return true;
 	}
 
+	private void setNumberEnableToFalse(List<PaNumber> numbers,
+			PaNumber setNumber, int i) {
+		// Jeżeli liczba nie jest pierwsza i ostatni lub jest pierwsza i
+		// ostatnią to tylko ją "wyłącz"
+		if ((!setNumber.first && !setNumber.last)
+				|| (setNumber.first && setNumber.last)) {
+			setNumber.enable = false;
+			return;
+		}
+
+		if (setNumber.first) {
+			numbers.get(i + 1).first = true;
+			setNumber.enable = false;
+		}
+
+		if (setNumber.last) {
+			numbers.get(i - 1).last = true;
+			setNumber.enable = false;
+		}
+
+	}
+
 	// debug
 	private void wypiszKod() {
 		for (int i = 0; i < y; i++) {
@@ -608,6 +679,8 @@ public class PicAPixArea {
 		public boolean enable = true; // Czy liczba aktywna
 		public int[] scope = new int[2]; // Okreslenie zakresu mozliwego
 											// wystapienia liczby
+		public boolean first = false; // czy liczba jest pierwsza
+		public boolean last = false; // czy liczba jest ostatnia
 
 		public PaNumber() {
 
@@ -615,6 +688,13 @@ public class PicAPixArea {
 
 		public PaNumber(byte val) {
 			this.val = val;
+		}
+
+		@Override
+		public String toString() {
+
+			return "Number: " + val + " [" + scope[0] + ", " + scope[1]
+					+ "] enable: " + enable;
 		}
 	}
 
@@ -641,8 +721,9 @@ public class PicAPixArea {
 
 				// Wyznaczenie do jakich liczb należy odcinek
 				for (PaNumber number : numbers) {
-					// Jeżeli zasięg liczby jest
-					if (s - 1 > number.scope[1]) {
+					// Jeżeli zasięg liczby nie pokrywa się z pozycją i
+					// długoscią liczby przejdź do następnej
+					if (s - 1 > number.scope[1] || number.val < (e - s + 1)) {
 						continue;
 					}
 
