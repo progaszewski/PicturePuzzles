@@ -13,7 +13,7 @@ public class PicAPixArea {
 	public static final byte ABSENCE = -1; // Pole nie pokolorowane
 
 	public Field[][] area; // tablica reprezentujaca plansze
-	public int x = 0, y = 0; // wymiray planszy
+	public int x = 0, y = 0; // wymiary planszy
 	public List<ListOfNumber> verticalListsOfNumbers; // Lista liczb pionowych
 	public List<ListOfNumber> horizontalListsOfNumbers; // Lista liczb poziomych
 
@@ -114,136 +114,37 @@ public class PicAPixArea {
 		}
 	}
 
-	// Metoda wyznaczająca pokolorowane odcinki. Wyznacza odcinki pokolorowane
-	// na szaro oraz odcinki pokolorowane na czarno, odcinki pokolorowane na
-	// czarno są rozdzielane według przynależności, czyli jeżeli odcinek jest
-	// złożony z pól, które należą do liczby n lub nie należą do żadnej liczby
-	// to jest on dzielony.
-	private void determiningOfLengths(ListOfNumber numberList,
-			boolean isVertical, int i) {
-
-		numberList.lengths = new ArrayList<Length>();
-		int n;
-
-		if (isVertical) {
-			n = this.y;
-		} else {
-			n = this.x;
+	public boolean solvePuzzle() {
+		int i = 0;
+		// I - szukanie pol, ktore musza zostac zamalowane.
+		// Liczby pionowe:
+		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+			firstStep(verticalList, true, i++);
 		}
 
-		int s = 0, e = 0;
-		// Zmienna zapamiętująca jakiego typu było ostatnie pole
-		int lastType = ABSENCE;
-		// Zmienna zapamiętująca do jakiej liczby nalożelo ostatnie pole (jeżeli
-		// null to znaczy że należało do żandej)
-		// PaNumber lastPaNumber = null;
-		for (int j = 0; j < n; j++) {
-
-			// Pobranie pola oraz liczby do którego należy (jeżeli null to nie
-			// nalezy do żadnej liczby)
-			Field field;
-
-			if (isVertical) {
-				field = this.area[j][i];
-			} else {
-				field = this.area[i][j];
-			}
-
-			if (field.type == ABSENCE) {
-				if (lastType != field.type) {
-					Length l = new Length(s, e - 1, lastType,
-							numberList.numbers);
-
-					numberList.lengths.add(l);
-					lastType = field.type;
-				}
-				lastType = field.type;
-				s = e = j + 1;
-				continue;
-			}
-			if (field.type == SELECTED) {
-				if (lastType == EMPTY) {
-
-					Length l = new Length(s, e - 1, lastType,
-							numberList.numbers);
-
-					numberList.lengths.add(l);
-					lastType = field.type;
-
-					s = j;
-					e = j + 1;
-					continue;
-				}
-				lastType = field.type;
-				e = j + 1;
-				continue;
-			}
-
-			if (field.type == EMPTY) {
-				if (lastType == SELECTED) {
-
-					Length l = new Length(s, e - 1, lastType,
-							numberList.numbers);
-
-					// Później do sprwadzenia czy działa!!
-					// Sprawdza czy długość wyznaczonego odcinka zgadza się z
-					// wartością liczby do ktorej należej (jeżlei odcinek należy
-					// tylko do jednej liczby). Jeżli prawda to oznacz odcinek
-					// jako komplenty.
-					if (l.listOfNumbersToBelong.size() == 1
-							&& (l.e - l.s + 1) == l.listOfNumbersToBelong
-									.get(0).val) {
-						l.isComplete = true;
-					}
-					numberList.lengths.add(l);
-
-					lastType = field.type;
-
-					s = j;
-					e = j + 1;
-					continue;
-				}
-				lastType = field.type;
-				e = j + 1;
-				continue;
-			}
+		i = 0;
+		// Liczby poziome:
+		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
+			firstStep(horizontalList, false, i++);
 		}
 
-		if (lastType == SELECTED || lastType == EMPTY) {
-			Length l = new Length(s, e - 1, lastType, numberList.numbers);
+		// II - laczenie odcinkow "czarnych" oraz wyznaczanie przestrzeni
+		// pomiędzy odcinkami "szarymi"
+		// Linie pionowe
+		i = 0;
+		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
 
-			numberList.lengths.add(l);
+			determiningOfLengths(verticalList, true, i++);
 		}
 
-		actionOnLengths(numberList, isVertical, i);
+		// Linie poziome
+		i = 0;
+		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
 
-		// DEBUG
-		for (Length l : numberList.lengths) {
-			String open, close;
-			if (l.type == SELECTED) {
-				open = "<";
-				close = ">";
-			} else {
-				open = "(";
-				close = ")";
-			}
-			String belongsTo;
-			if (l.listOfNumbersToBelong == null) {
-				belongsTo = " nalezy do: NULL";
-			} else {
-				belongsTo = " nelezy do: ";
-				for (PaNumber number : l.listOfNumbersToBelong) {
-					belongsTo = belongsTo + number.val + ": ["
-							+ number.scope[0] + ", " + number.scope[1] + "], ";
-				}
-			}
-
-			System.out.println(i + ": " + open + l.s + ", " + l.e + close
-					+ belongsTo);
+			determiningOfLengths(horizontalList, false, i++);
 		}
-		// DEBUG
-		System.out.println();
 
+		return false;
 	}
 
 	// I etap - malowanie pewnych pol oraz wyznaczanie zasięgu liczby
@@ -274,10 +175,10 @@ public class PicAPixArea {
 				for (int j = startPosition + diff; j < startPosition
 						+ paNumber.val; j++) {
 					if (isVertical) {
-						this.area[j][i].type = 1;
+						this.area[j][i].type = SELECTED;
 						this.area[j][i].belongsToVertical = paNumber;
 					} else {
-						this.area[i][j].type = 1;
+						this.area[i][j].type = SELECTED;
 						this.area[i][j].belongsToHorizontal = paNumber;
 					}
 
@@ -291,19 +192,19 @@ public class PicAPixArea {
 						for (int k = 0; k < firstNumber.val; k++) {
 
 							if (isVertical) {
-								this.area[j][k].type = 1;
+								this.area[j][k].type = SELECTED;
 								this.area[j][k].belongsToHorizontal = firstNumber;
 							} else {
-								this.area[k][j].type = 1;
+								this.area[k][j].type = SELECTED;
 								this.area[k][j].belongsToVertical = firstNumber;
 							}
 
 						}
 						// Kolorownie natępnej kratki na "szaro"
 						if (isVertical) {
-							this.area[j][firstNumber.val].type = 0;
+							this.area[j][firstNumber.val].type = EMPTY;
 						} else {
-							this.area[firstNumber.val][j].type = 0;
+							this.area[firstNumber.val][j].type = EMPTY;
 						}
 
 						setNumberEnableToFalse(numberListPrim.numbers,
@@ -327,19 +228,19 @@ public class PicAPixArea {
 						for (int k = nPrim - 1; k >= nPrim - lastNumber.val; k--) {
 
 							if (isVertical) {
-								this.area[j][k].type = 1;
+								this.area[j][k].type = SELECTED;
 								this.area[j][k].belongsToHorizontal = lastNumber;
 							} else {
-								this.area[k][j].type = 1;
+								this.area[k][j].type = SELECTED;
 								this.area[k][j].belongsToVertical = lastNumber;
 							}
 
 						}
-						// Kolorownie natępnej kratki na "czaro"
+						// Kolorownie natępnej kratki na "szaro"
 						if (isVertical) {
-							this.area[j][nPrim - lastNumber.val - 1].type = 0;
+							this.area[j][nPrim - lastNumber.val - 1].type = EMPTY;
 						} else {
-							this.area[nPrim - lastNumber.val - 1][j].type = 0;
+							this.area[nPrim - lastNumber.val - 1][j].type = EMPTY;
 						}
 
 						setNumberEnableToFalse(numberListPrim.numbers,
@@ -368,6 +269,155 @@ public class PicAPixArea {
 		// System.out.println("\n");
 	}
 
+	private void setNumberEnableToFalse(List<PaNumber> numbers,
+			PaNumber setNumber, int i) {
+		// Jeżeli liczba nie jest pierwszą oraz ostatnią lub jest pierwszą i
+		// ostatnią to tylko ją "wyłącz"
+		if ((!setNumber.first && !setNumber.last)
+				|| (setNumber.first && setNumber.last)) {
+			setNumber.enable = false;
+			return;
+		}
+
+		if (setNumber.first) {
+			numbers.get(i + 1).first = true;
+			setNumber.enable = false;
+		}
+
+		if (setNumber.last) {
+			numbers.get(i - 1).last = true;
+			setNumber.enable = false;
+		}
+
+	}
+
+	// Metoda wyznaczająca pokolorowane odcinki. Wyznacza odcinki pokolorowane
+	// na szaro oraz odcinki pokolorowane na czarno, odcinki pokolorowane na
+	// czarno są rozdzielane według przynależności, czyli jeżeli odcinek jest
+	// złożony z pól, które należą do liczby n lub nie należą do żadnej liczby
+	// to jest on dzielony.
+	private void determiningOfLengths(ListOfNumber numberList,
+			boolean isVertical, int i) {
+
+		numberList.selectedLengths = new ArrayList<Length>();
+		numberList.spaceLengths = new ArrayList<Length>();
+		int n;
+
+		if (isVertical) {
+			n = this.y;
+		} else {
+			n = this.x;
+		}
+
+		int s = 0, e = 0, ss = 0;
+		// Zmienna zapamiętująca jakiego typu było ostatnie pole
+		int lastType = EMPTY;
+		// Zmienna zapamiętująca do jakiej liczby nalożelo ostatnie pole (jeżeli
+		// null to znaczy że należało do żandej)
+		// PaNumber lastPaNumber = null;
+		for (int j = 0; j < n; j++) {
+
+			// Pobranie pola oraz liczby do którego należy (jeżeli null to nie
+			// nalezy do żadnej liczby)
+			Field field;
+
+			if (isVertical) {
+				field = this.area[j][i];
+			} else {
+				field = this.area[i][j];
+			}
+
+			if (field.type == ABSENCE) {
+				if (lastType == SELECTED) {
+					Length l = new Length(s, e - 1, SELECTED,
+							numberList.numbers);
+
+					numberList.selectedLengths.add(l);
+				}
+
+				if (lastType == EMPTY) {
+					ss = j;
+				}
+				lastType = field.type;
+				s = e = j + 1;
+				continue;
+			}
+			if (field.type == SELECTED) {
+				if (lastType == EMPTY) {
+					ss = s = j;
+				}
+				lastType = field.type;
+				e = j + 1;
+				continue;
+			}
+
+			if (field.type == EMPTY) {
+				if (lastType != EMPTY) {
+					Length l = new Length(ss, e - 1, ABSENCE,
+							numberList.numbers);
+
+					numberList.spaceLengths.add(l);
+				}
+				if (lastType == SELECTED) {
+
+					Length l = new Length(s, e - 1, SELECTED,
+							numberList.numbers);
+
+					numberList.selectedLengths.add(l);
+
+				}
+				lastType = field.type;
+				// e = j + 1;
+				continue;
+			}
+		}
+
+		if (lastType == SELECTED) {
+			Length l = new Length(s, e - 1, SELECTED, numberList.numbers);
+
+			numberList.selectedLengths.add(l);
+		}
+		if (lastType != EMPTY) {
+			Length l = new Length(ss, e - 1, ABSENCE, numberList.numbers);
+			numberList.spaceLengths.add(l);
+		}
+
+		actionOnLengths(numberList, isVertical, i);
+
+		// DEBUG
+		for (Length l : numberList.selectedLengths) {
+			String open, close;
+
+			open = "<";
+			close = ">";
+
+			String belongsTo;
+			if (l.listOfNumbersToBelong == null) {
+				belongsTo = " nalezy do: NULL";
+			} else {
+				belongsTo = " nelezy do: ";
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					belongsTo = belongsTo + number.val + ": ["
+							+ number.scope[0] + ", " + number.scope[1] + "], ";
+				}
+			}
+
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close
+					+ belongsTo);
+		}
+		for (Length l : numberList.spaceLengths) {
+			String open, close;
+
+			open = "(";
+			close = ")";
+
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close);
+		}
+		// DEBUG
+		System.out.println();
+
+	}
+
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
 			int i) {
 
@@ -377,7 +427,7 @@ public class PicAPixArea {
 		else
 			n = this.x;
 
-		List<Length> lengths = numberList.lengths;
+		List<Length> lengths = numberList.selectedLengths;
 		int k = 0; // wskaźnik na odcinek
 		// wielkość listy odcinków (może się zmieniać podczas przebiegu pętli
 		int size = lengths.size();
@@ -385,7 +435,7 @@ public class PicAPixArea {
 		while (k < size) {
 			Length l = lengths.get(k);
 
-			if (l.type == EMPTY) {
+			if (l.type == ABSENCE) {
 				k++;
 				continue;
 			}
@@ -422,9 +472,6 @@ public class PicAPixArea {
 				if (l.s + numberOfL.val - 1 < numberOfL.scope[1]
 						|| l.e - numberOfL.val + 1 > numberOfL.scope[0]) {
 
-					// System.out.print("Przed: ");
-					// System.out.println(numberOfL);
-
 					if (l.e - numberOfL.val + 1 < 0) {
 						numberOfL.scope[0] = 0;
 					} else {
@@ -437,8 +484,7 @@ public class PicAPixArea {
 						numberOfL.scope[1] = l.s + numberOfL.val - 1;
 					}
 					changeBelongsToNumberForLengths(lengths, numberOfL);
-					// System.out.print("Po: ");
-					// System.out.println(numberOfL);
+
 				}
 			}
 			k++;
@@ -449,45 +495,13 @@ public class PicAPixArea {
 	private void changeBelongsToNumberForLengths(List<Length> lengths,
 			PaNumber number) {
 		for (Length length : lengths) {
-			if (length.type == EMPTY)
+			if (length.type == ABSENCE)
 				continue;
 
 			if (length.s < number.scope[0] || length.e > number.scope[1]) {
 				length.listOfNumbersToBelong.remove(number);
 			}
 		}
-	}
-
-	public boolean solvePuzzle() {
-		int i = 0;
-		// I - szukanie pol, ktore musza zostac zamalowane.
-		// Liczby pionowe:
-		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
-			firstStep(verticalList, true, i++);
-		}
-
-		i = 0;
-		// Liczby poziome:
-		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-			firstStep(horizontalList, false, i++);
-		}
-
-		// II - laczenie odcinkow "czarnych" oraz wyznaczanie odcinkow "szarych"
-		// Linie pionowe
-		i = 0;
-		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
-
-			determiningOfLengths(verticalList, true, i++);
-		}
-
-		// Linie poziome
-		i = 0;
-		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-
-			determiningOfLengths(horizontalList, false, i++);
-		}
-
-		return false;
 	}
 
 	// Sprawdzanie czy łamigłówka została poprawnie rozwiązana
@@ -600,28 +614,6 @@ public class PicAPixArea {
 		return true;
 	}
 
-	private void setNumberEnableToFalse(List<PaNumber> numbers,
-			PaNumber setNumber, int i) {
-		// Jeżeli liczba nie jest pierwsza i ostatni lub jest pierwsza i
-		// ostatnią to tylko ją "wyłącz"
-		if ((!setNumber.first && !setNumber.last)
-				|| (setNumber.first && setNumber.last)) {
-			setNumber.enable = false;
-			return;
-		}
-
-		if (setNumber.first) {
-			numbers.get(i + 1).first = true;
-			setNumber.enable = false;
-		}
-
-		if (setNumber.last) {
-			numbers.get(i - 1).last = true;
-			setNumber.enable = false;
-		}
-
-	}
-
 	// debug
 	private void wypiszKod() {
 		for (int i = 0; i < y; i++) {
@@ -658,7 +650,9 @@ public class PicAPixArea {
 		public byte otherNumbers = -1; // ile pozostalo numerow do wyznaczenia
 										// (pokolorowania)
 		public int sumOfNumbers = -1; // suma wszystkich numerow
-		public List<Length> lengths; // Wyznaczone długości
+		public List<Length> selectedLengths; // Wyznaczone pokolorowane odcinki
+		public List<Length> spaceLengths; // Odcinki pomiędzy odcinkami
+											// pokolorowanymi na szaro
 
 		public ListOfNumber() {
 
