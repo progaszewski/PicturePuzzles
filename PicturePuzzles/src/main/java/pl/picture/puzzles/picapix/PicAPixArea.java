@@ -19,6 +19,8 @@ public class PicAPixArea {
 
 	public int maxVerticalNumbers, maxHorizontalNumbers;
 
+	private boolean change;
+
 	public PicAPixArea(File f) {
 		init(f);
 	}
@@ -115,6 +117,8 @@ public class PicAPixArea {
 	}
 
 	public boolean solvePuzzle() {
+
+		change = false;
 		int i = 0;
 		// I - szukanie pol, ktore musza zostac zamalowane.
 		// Liczby pionowe:
@@ -131,17 +135,32 @@ public class PicAPixArea {
 		// II - laczenie odcinkow "czarnych" oraz wyznaczanie przestrzeni
 		// pomiędzy odcinkami "szarymi"
 		// Linie pionowe
-		i = 0;
-		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
 
-			determiningOfLengths(verticalList, true, i++);
+		int k = 0;
+		while (k++ < 30) {
+			change = false;
+			i = 0;
+			for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+
+				determiningOfLengths(verticalList, true, i++);
+			}
+
+			// Linie poziome
+			i = 0;
+			for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
+
+				determiningOfLengths(horizontalList, false, i++);
+			}
 		}
 
-		// Linie poziome
+		// DEBUG
+		i = 0;
+		for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+			printSpecOfLengths(verticalList, i++);
+		}
 		i = 0;
 		for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-
-			determiningOfLengths(horizontalList, false, i++);
+			printSpecOfLengths(horizontalList, i++);
 		}
 
 		return false;
@@ -252,6 +271,7 @@ public class PicAPixArea {
 						numberListPrim.otherNumbers--;
 					}
 				}
+				change = true;
 			}
 
 			// Wyznaczanie zasięgu liczby
@@ -355,8 +375,8 @@ public class PicAPixArea {
 				if (lastType != EMPTY) {
 					Length l = new Length(ss, e - 1, ABSENCE,
 							numberList.numbers);
-
-					numberList.spaceLengths.add(l);
+					if (!l.isComplete)
+						numberList.spaceLengths.add(l);
 				}
 				if (lastType == SELECTED) {
 
@@ -379,12 +399,17 @@ public class PicAPixArea {
 		}
 		if (lastType != EMPTY) {
 			Length l = new Length(ss, e - 1, ABSENCE, numberList.numbers);
-			numberList.spaceLengths.add(l);
+			if (!l.isComplete)
+				numberList.spaceLengths.add(l);
 		}
 
 		actionOnLengths(numberList, isVertical, i);
 		tryDrawLength(numberList, isVertical, i);
 
+	}
+
+	// DEBUG
+	private void printSpecOfLengths(ListOfNumber numberList, int i) {
 		// DEBUG
 		for (Length l : numberList.selectedLengths) {
 			String open, close;
@@ -426,7 +451,6 @@ public class PicAPixArea {
 		}
 		// DEBUG
 		System.out.println();
-
 	}
 
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
@@ -469,6 +493,7 @@ public class PicAPixArea {
 							} else {
 								this.area[i][j].type = SELECTED;
 							}
+							change = true;
 						}
 						// Scalenie odcinka l z lNext
 						l.e = lNext.e;
@@ -476,30 +501,21 @@ public class PicAPixArea {
 						size--;
 					}
 				}
-				// Pobranie referancji liczby zależnej od odcinka
+				// Pobranie referancji do liczby zależnej od odcinka
 				PaNumber numberOfL = l.listOfNumbersToBelong.get(0);
 
 				// Sprawdzenie czy zmienia się zasięg liczby
 				if (l.s + numberOfL.val - 1 < numberOfL.scope[1]
 						|| l.e - numberOfL.val + 1 > numberOfL.scope[0]) {
 
-					System.out.println("Zmiana zasięgu przed: " + numberOfL.val
-							+ ": [" + numberOfL.scope[0] + ", "
-							+ numberOfL.scope[1] + "]");
-					if (l.e - numberOfL.val + 1 < 0) {
-						numberOfL.scope[0] = 0;
-					} else {
+					if (l.e - numberOfL.val + 1 >= 0) {
 						numberOfL.scope[0] = l.e - numberOfL.val + 1;
 					}
 
-					if (l.s + numberOfL.val - 1 > n - 1) {
-						numberOfL.scope[1] = n - 1;
-					} else {
+					if (l.s + numberOfL.val - 1 <= n - 1) {
 						numberOfL.scope[1] = l.s + numberOfL.val - 1;
 					}
-					System.out.println("Zmiana zasięgu po: " + numberOfL.val
-							+ ": [" + numberOfL.scope[0] + ", "
-							+ numberOfL.scope[1] + "]");
+
 					changeBelongsToNumberForLengths(lengths, numberOfL);
 
 				}
@@ -526,6 +542,7 @@ public class PicAPixArea {
 						} else {
 							this.area[i][l.s - 1].type = EMPTY;
 						}
+						change = true;
 					}
 					if (l.e + 1 < n - 1) {
 						if (isVertical) {
@@ -533,10 +550,56 @@ public class PicAPixArea {
 						} else {
 							this.area[i][l.e + 1].type = EMPTY;
 						}
+						change = true;
 					}
 				}
 			}
 			k++;
+		}
+		// Działanie na odcinkach wyznaczonych pomiędzy odcinkami pokolorowanymi
+		// na szaro
+		lengths = numberList.spaceLengths;
+
+		for (k = 0; k < lengths.size(); k++) {
+			Length length = lengths.get(k);
+
+			// Jeżeli do przestrzeni nienależą żadne liczby pokoloruj odcinek na
+			// szaro
+			if (length.listOfNumbersToBelong.size() == 0) {
+				for (int j = length.s; j <= length.e; j++) {
+					if (isVertical) {
+						this.area[j][i].type = EMPTY;
+					} else {
+						this.area[i][j].type = EMPTY;
+					}
+					change = true;
+				}
+			}
+
+			// Jeżeli jest to pierwsza przestrzeń
+			if (k == 0 && length.s > 0) {
+				// Spróbuj zmienić zasieg liczb należących do tej przesterzeni.
+				int scope = length.s;
+				for (PaNumber number : length.listOfNumbersToBelong) {
+					if (number.scope[0] < scope) {
+						number.scope[0] = scope;
+					}
+					scope += number.val + 1;
+				}
+			}
+
+			// Jeżeli jest to ostatnia przestrzeń
+			if (k == lengths.size() - 1 && k < n - 1) {
+				// Spróbuj zmienieć zasięg liczb należących do tej przestrzeni
+				int scope = length.e;
+				for (int z = length.listOfNumbersToBelong.size() - 1; z >= 0; z--) {
+					PaNumber number = length.listOfNumbersToBelong.get(z);
+					if (number.scope[1] > scope) {
+						number.scope[1] = scope;
+					}
+					scope -= (number.val + 1);
+				}
+			}
 		}
 	}
 
@@ -692,6 +755,45 @@ public class PicAPixArea {
 			if (!number.enable) {
 				continue;
 			}
+
+			// Jeżeli liczba jest pierszą na liście to spróbuj pokolorować na
+			// szaro kratki na lewo od niej
+			if (number.first) {
+				for (int j = number.scope[0] - 1; j >= 0; j--) {
+					if (isVertical) {
+						if (this.area[j][i].type == ABSENCE) {
+							this.area[j][i].type = EMPTY;
+							change = true;
+						}
+
+					} else {
+						if (this.area[i][j].type == ABSENCE) {
+							this.area[i][j].type = EMPTY;
+							change = true;
+						}
+					}
+
+				}
+			}
+			// Jeżeli liczba jest ostatnią na liście to spróbuj pokolorować na
+			// szaro kratki na prawo od niej
+			if (number.last) {
+				for (int j = number.scope[1] + 1; j <= n - 1; j++) {
+					if (isVertical) {
+						if (this.area[j][i].type == ABSENCE) {
+							this.area[j][i].type = EMPTY;
+							change = true;
+						}
+					} else {
+						if (this.area[i][j].type == ABSENCE) {
+							this.area[i][j].type = EMPTY;
+							change = true;
+						}
+					}
+
+				}
+			}
+
 			int x = number.scope[1] - number.scope[0] + 1 - number.val;
 
 			if (x < number.val) {
@@ -703,6 +805,7 @@ public class PicAPixArea {
 					} else {
 						this.area[i][j].type = SELECTED;
 					}
+					change = true;
 				}
 			}
 			// Jeżeli x == 0 to znaczy, że można wyznaczyć całą liczbę
@@ -727,7 +830,27 @@ public class PicAPixArea {
 						this.area[i][number.scope[1] + 1].type = EMPTY;
 					}
 				}
+
+				// Zmiana zasięgu pozostałych liczb
+				// na lewo
+				int scopeRight = number.scope[0] - 1;
+				for (int z = k - 1; z >= 0; z--) {
+					PaNumber leftNumber = numberList.numbers.get(z);
+
+					leftNumber.scope[1] = scopeRight;
+					scopeRight -= (leftNumber.val + 1);
+				}
+				// na prawo
+				int scopeLeft = number.scope[1] + 1;
+				for (int z = k + 1; z < numberList.numbers.size(); z++) {
+					PaNumber rightNumber = numberList.numbers.get(z);
+
+					rightNumber.scope[0] = scopeLeft;
+					scopeLeft += rightNumber.val + 1;
+				}
+				change = true;
 			}
+
 		}
 
 	}
@@ -872,6 +995,16 @@ public class PicAPixArea {
 
 					if (number.scope[0] >= s && number.scope[1] <= e) {
 
+						// Jeżeli liczba jest już wyznaczone i jej zasięg
+						// odpowiada dłuości wyznaczanego odcinka, to uznacz
+						// odcinek jako kompletny i przerwij pętlę, w ten sposób
+						// odcinek nie zostanie dodany
+						if (!number.enable && number.scope[0] == s
+								&& number.scope[1] == e) {
+
+							isComplete = true;
+							break;
+						}
 						this.listOfNumbersToBelong.add(number);
 						continue;
 					}
