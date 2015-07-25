@@ -166,7 +166,7 @@ public class PicAPixArea {
 		int startPosition = 0;
 		for (PaNumber paNumber : numberList.numbers) {
 
-			// wyznazcenie N
+			// wyznaczenie N
 			int N = n
 					- (numberList.sumOfNumbers + numberList.numbers.size() - 1 - paNumber.val);
 			// 2 * val > N
@@ -383,6 +383,7 @@ public class PicAPixArea {
 		}
 
 		actionOnLengths(numberList, isVertical, i);
+		tryDrawLength(numberList, isVertical, i);
 
 		// DEBUG
 		for (Length l : numberList.selectedLengths) {
@@ -410,8 +411,18 @@ public class PicAPixArea {
 
 			open = "(";
 			close = ")";
-
-			System.out.println(i + ": " + open + l.s + ", " + l.e + close);
+			String belongsTo;
+			if (l.listOfNumbersToBelong == null) {
+				belongsTo = " nalezy do: NULL";
+			} else {
+				belongsTo = " nelezy do: ";
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					belongsTo = belongsTo + number.val + ": ["
+							+ number.scope[0] + ", " + number.scope[1] + "], ";
+				}
+			}
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close
+					+ belongsTo);
 		}
 		// DEBUG
 		System.out.println();
@@ -435,7 +446,7 @@ public class PicAPixArea {
 		while (k < size) {
 			Length l = lengths.get(k);
 
-			if (l.type == ABSENCE) {
+			if (l.isComplete) {
 				k++;
 				continue;
 			}
@@ -472,6 +483,9 @@ public class PicAPixArea {
 				if (l.s + numberOfL.val - 1 < numberOfL.scope[1]
 						|| l.e - numberOfL.val + 1 > numberOfL.scope[0]) {
 
+					System.out.println("Zmiana zasięgu przed: " + numberOfL.val
+							+ ": [" + numberOfL.scope[0] + ", "
+							+ numberOfL.scope[1] + "]");
 					if (l.e - numberOfL.val + 1 < 0) {
 						numberOfL.scope[0] = 0;
 					} else {
@@ -483,8 +497,43 @@ public class PicAPixArea {
 					} else {
 						numberOfL.scope[1] = l.s + numberOfL.val - 1;
 					}
+					System.out.println("Zmiana zasięgu po: " + numberOfL.val
+							+ ": [" + numberOfL.scope[0] + ", "
+							+ numberOfL.scope[1] + "]");
 					changeBelongsToNumberForLengths(lengths, numberOfL);
 
+				}
+			}
+
+			if (l.listOfNumbersToBelong.size() > 1) {
+
+				int val = l.listOfNumbersToBelong.get(0).val;
+				boolean theSame = true;
+				for (PaNumber number : l.listOfNumbersToBelong) {
+
+					if (val != number.val) {
+						theSame = false;
+						break;
+					}
+				}
+				// Jeżeli wszystkie liczby na leżą do liczb o takiej samej
+				// wartości i długość odcinka odpowiada wartości tych liczb to
+				// pokoloruj graniczne pola na szaro
+				if (theSame && val == (l.e - l.s + 1)) {
+					if (l.s - 1 > 0) {
+						if (isVertical) {
+							this.area[l.s - 1][i].type = EMPTY;
+						} else {
+							this.area[i][l.s - 1].type = EMPTY;
+						}
+					}
+					if (l.e + 1 < n - 1) {
+						if (isVertical) {
+							this.area[l.e + 1][i].type = EMPTY;
+						} else {
+							this.area[i][l.e + 1].type = EMPTY;
+						}
+					}
 				}
 			}
 			k++;
@@ -626,6 +675,63 @@ public class PicAPixArea {
 
 	}
 
+	// sprawdz czy zasieg liczby pozwala na wyznaczenie części lub całego
+	// odcinka
+	private void tryDrawLength(ListOfNumber numberList, boolean isVertical,
+			int i) {
+
+		int n = 0;
+		if (isVertical) {
+			n = this.y;
+		} else {
+			n = this.x;
+		}
+		for (int k = 0; k < numberList.numbers.size(); k++) {
+			PaNumber number = numberList.numbers.get(k);
+			// Jeżeli liczba jest już wyznaczona przejdź do następnej
+			if (!number.enable) {
+				continue;
+			}
+			int x = number.scope[1] - number.scope[0] + 1 - number.val;
+
+			if (x < number.val) {
+				for (int j = number.scope[0] + x; j < number.scope[0]
+						+ number.val; j++) {
+
+					if (isVertical) {
+						this.area[j][i].type = SELECTED;
+					} else {
+						this.area[i][j].type = SELECTED;
+					}
+				}
+			}
+			// Jeżeli x == 0 to znaczy, że można wyznaczyć całą liczbę
+			if (x == 0) {
+				setNumberEnableToFalse(numberList.numbers, number, k);
+
+				numberList.otherNumbers--;
+				numberList.sumOfNumbers -= number.val;
+				// Kolorowanie na szaro kratek, które graniczą z wyznaczonym
+				// całym odcinkiem
+				if (number.scope[0] - 1 >= 0) {
+					if (isVertical) {
+						this.area[number.scope[0] - 1][i].type = EMPTY;
+					} else {
+						this.area[i][number.scope[0] - 1].type = EMPTY;
+					}
+				}
+				if (number.scope[1] + 1 <= n - 1) {
+					if (isVertical) {
+						this.area[number.scope[1] + 1][i].type = EMPTY;
+					} else {
+						this.area[i][number.scope[1] + 1].type = EMPTY;
+					}
+				}
+			}
+		}
+
+	}
+
 	// Klasa reprezetujaca pole / kratke na planszy
 	public class Field {
 		public byte type = ABSENCE; // typ pola, mozliwe wartosci: -1 -- Brak
@@ -710,6 +816,7 @@ public class PicAPixArea {
 			this.s = s;
 			this.e = e;
 			this.type = type;
+			this.listOfNumbersToBelong = new ArrayList<PaNumber>();
 
 			if (type == SELECTED) {
 
@@ -741,17 +848,50 @@ public class PicAPixArea {
 
 					if (number.scope[0] <= s && number.scope[1] >= e) {
 
-						if (this.listOfNumbersToBelong == null) {
-							this.listOfNumbersToBelong = new ArrayList<PaNumber>();
-						}
+						this.listOfNumbersToBelong.add(number);
+						continue;
+					}
+
+					System.out.println("Błąd! " + number.val + ":["
+							+ number.scope[1] + ", " + number.scope[1] + "], <"
+							+ s + ", " + e + ">, type:" + type);
+				}
+			}
+
+			if (type == ABSENCE) {
+
+				for (PaNumber number : numbers) {
+
+					if (s > number.scope[1] || number.val > (e - s + 1)) {
+						continue;
+					}
+
+					if (e < number.scope[0]) {
+						break;
+					}
+
+					if (number.scope[0] >= s && number.scope[1] <= e) {
 
 						this.listOfNumbersToBelong.add(number);
 						continue;
 					}
 
-					System.err.println("Błąd! [" + number.scope[1] + ", "
-							+ number.scope[1] + "], <" + s + ", " + e
-							+ ">, type:" + type);
+					if (number.scope[0] - s < 0
+							&& number.scope[0] - s + 1 + number.val > 0) {
+						number.scope[0] = s;
+					}
+
+					if (e - number.scope[1] < 0
+							&& e - number.scope[1] + 1 + number.val > 0) {
+						number.scope[1] = e;
+					}
+
+					this.listOfNumbersToBelong.add(number);
+
+					// System.out.println("Brak kontynuacji! " + number.val +
+					// ":["
+					// + number.scope[0] + ", " + number.scope[1] + "], ("
+					// + s + ", " + e + "), type:" + type);
 				}
 			}
 		}
