@@ -54,7 +54,7 @@ public class PicAPixPuzzle extends Puzzle {
 		if (paArea == null)
 			return;
 
-		if (paArea.solvePuzzle()) {
+		if (paArea.solvePuzzle(paPanel)) {
 			paPanel.repaint();
 			JOptionPane.showMessageDialog(null,
 					Messages.getString("Puzzle.success.solved.text"),
