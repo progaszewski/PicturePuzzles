@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class PicAPixArea {
@@ -164,24 +165,21 @@ public class PicAPixArea {
 					determiningOfLengths(horizontalList, false, i++);
 				}
 
-				// // DEBUG
-				// i = 0;
-				// System.out
-				// .println(k
-				// +
-				// ": ------------------------------------------------------------");
-				// for (ListOfNumber verticalList : this.verticalListsOfNumbers)
-				// {
-				// printSpecOfLengths(verticalList, i++);
-				// }
-				// i = 0;
-				// for (ListOfNumber horizontalList :
-				// this.horizontalListsOfNumbers) {
-				// printSpecOfLengths(horizontalList, i++);
-				// }
-				// panel.repaint();
-				// JOptionPane.showMessageDialog(panel, k, "Info",
-				// JOptionPane.INFORMATION_MESSAGE);
+				// DEBUG
+				i = 0;
+				System.out
+						.println(k
+								+ ": ------------------------------------------------------------");
+				for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
+					printSpecOfLengths(verticalList, i++);
+				}
+				i = 0;
+				for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
+					printSpecOfLengths(horizontalList, i++);
+				}
+				panel.repaint();
+				JOptionPane.showMessageDialog(panel, k, "Info",
+						JOptionPane.INFORMATION_MESSAGE);
 
 			}
 
