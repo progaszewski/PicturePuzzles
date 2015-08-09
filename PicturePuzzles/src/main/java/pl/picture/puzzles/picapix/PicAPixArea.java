@@ -2,10 +2,12 @@ package pl.picture.puzzles.picapix;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import pl.picture.puzzles.common.PuzzleUtilities;
@@ -127,7 +129,7 @@ public class PicAPixArea {
 		// Rozpoczęcie odmierzania czasu rozwiazywania lamiglowki
 		long startCountTimeElapsed = System.currentTimeMillis();
 		try {
-			// System.setOut(new PrintStream(new File("output-file.txt")));
+			System.setOut(new PrintStream(new File("output-file.txt")));
 			change = false;
 			int i = 0;
 			// I - szukanie pol, ktore musza zostac zamalowane.
@@ -147,6 +149,10 @@ public class PicAPixArea {
 			// Linie pionowe
 
 			k = 0;
+
+			// panel.repaint();
+			// JOptionPane.showMessageDialog(panel, k, "Info",
+			// JOptionPane.INFORMATION_MESSAGE);
 			// while (k < 24) {
 			while (change) {
 				k++;
@@ -183,9 +189,9 @@ public class PicAPixArea {
 				for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
 					printSpecOfLengths(horizontalList, i++);
 				}
-				// panel.repaint();
-				// JOptionPane.showMessageDialog(panel, k, "Info",
-				// JOptionPane.INFORMATION_MESSAGE);
+				panel.repaint();
+				JOptionPane.showMessageDialog(panel, k, "Info",
+						JOptionPane.INFORMATION_MESSAGE);
 
 			}
 
@@ -274,7 +280,9 @@ public class PicAPixArea {
 						setNumberEnableToFalse(numberListPrim.numbers,
 								firstNumber, 0);
 						// firstNumber.enable = false;
-
+						if (firstNumber.scope == null) {
+							firstNumber.scope = new int[2];
+						}
 						firstNumber.scope[0] = 0;
 						firstNumber.scope[1] = firstNumber.val - 1;
 						numberListPrim.otherNumbers--;
@@ -315,6 +323,10 @@ public class PicAPixArea {
 								lastNumber, numberListPrim.numbers.size() - 1);
 						// lastNumber.enable = false;
 
+						if (lastNumber.scope == null) {
+							lastNumber.scope = new int[2];
+						}
+
 						lastNumber.scope[0] = nPrim - lastNumber.val;
 						lastNumber.scope[1] = nPrim - 1;
 						numberListPrim.otherNumbers--;
@@ -327,11 +339,13 @@ public class PicAPixArea {
 			}
 
 			// Wyznaczanie zasięgu liczby
-			paNumber.scope[0] = startPosition;
-			paNumber.scope[1] = n
-					- (numberList.sumOfNumbers - startPosition - paNumber.val + numberList.numbers
-							.size());
-
+			if (paNumber.scope == null) {
+				paNumber.scope = new int[2];
+				paNumber.scope[0] = startPosition;
+				paNumber.scope[1] = n
+						- (numberList.sumOfNumbers - startPosition
+								- paNumber.val + numberList.numbers.size());
+			}
 			/*
 			 * System.out.print(paNumber.val + ": [" + paNumber.scope[0] + "," +
 			 * paNumber.scope[1] + "] ");
@@ -395,7 +409,7 @@ public class PicAPixArea {
 		if (setNumber.last) {
 			// numbers.get(i - 1).last = true;
 
-			for (int k = i - 1; k >= 0; k++) {
+			for (int k = i - 1; k >= 0; k--) {
 				PaNumber number = numbers.get(k);
 				if (!number.enable) {
 					number.last = false;
@@ -573,6 +587,44 @@ public class PicAPixArea {
 		// wielkość listy odcinków (może się zmieniać podczas przebiegu pętli
 		int size = lengths.size();
 
+		// Sprawdzanie czy pierwszy odcinek odpowiada długości pierwszej liczby,
+		// jeżeli tak to zmniejsz jej zasięg, to samo z ostanim odcinkiem i
+		// ostatnią liczbą
+		if (size > 1) {
+			Length firstLength = lengths.get(0);
+			Length lastLength = lengths.get(size - 1);
+
+			PaNumber firstNumber = null, lastNumber = null;
+			for (PaNumber number : numberList.numbers) {
+				if (number.enable) {
+					if (number.first && firstNumber == null) {
+						firstNumber = number;
+					}
+					if (number.last && lastNumber == null) {
+						lastNumber = number;
+					}
+				}
+			}
+
+			if (firstNumber != null
+					&& firstLength.e - firstLength.s + 1 == firstNumber.val
+					&& firstNumber.scope[0] <= firstLength.s
+					&& firstNumber.scope[1] >= firstLength.e) {
+
+				firstNumber.changeScopeRight(numberList.numbers, firstLength.e);
+				changeBelongsToNumberForLengths(lengths, firstNumber);
+			}
+
+			if (lastNumber != null
+					&& lastLength.e - lastLength.s + 1 == lastNumber.val
+					&& lastNumber.scope[0] <= lastLength.s
+					&& lastNumber.scope[1] >= lastLength.e) {
+
+				lastNumber.changeScopeLeft(numberList.numbers, lastLength.s);
+				changeBelongsToNumberForLengths(lengths, lastNumber);
+			}
+		}
+
 		while (k < size) {
 			Length l = lengths.get(k);
 
@@ -596,18 +648,10 @@ public class PicAPixArea {
 
 							if (isVertical) {
 								this.area[j][i].changeType(SELECTED);
-								// if (j == 0) {
-								// System.out.println("ZAZNACZANIE V_1: area["
-								// + j + "][" + i + "]");
-								// }
+
 							} else {
 								this.area[i][j].changeType(SELECTED);
-								// if (i == 0) {
-								//
-								// System.out.println("ZAZNACZANIE H_1: area["
-								// + i + "][" + j + "]");
-								//
-								// }
+
 							}
 						}
 						// Scalenie odcinka l z lNext
@@ -670,9 +714,41 @@ public class PicAPixArea {
 						}
 					}
 				}
+				// Sprawdzanie czy liczba powinna należeć do odcinka, jeżeli jej
+				// zakres początkowy jest taki sam jak pozycja startowa odcinka
+				// sprawdz czy można prawidłowo wyznaczyć odcinek, to samo w
+				// drugą stronę.
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					// Jeżeli zakres początkowy zgadza się z początkiem odcinka
+					// i istnieje następny odcinek
+					if (number.scope[0] == l.s && k + 1 < size) {
+						Length nextLength = lengths.get(k + 1);
+
+						if (number.scope[0] + number.val - 1 >= nextLength.s - 1
+								&& number.scope[0] + number.val - 1 < nextLength.e) {
+
+							number.changeScopeLeft(numberList.numbers, l.e + 1);
+
+						}
+					}
+
+					if (number.scope[1] == l.e && k - 1 > 0) {
+						Length prevLength = lengths.get(k - 1);
+
+						if (number.scope[1] - number.val + 1 <= prevLength.e + 1
+								&& number.scope[1] - number.val + 1 > prevLength.e) {
+
+							number.changeScopeRight(numberList.numbers, l.s - 1);
+						}
+					}
+				}
 			}
+
+			tryEliminateField(l, n, isVertical, i);
+
 			k++;
 		}
+		// -----------------------------------------------------------------------
 		// Działanie na odcinkach wyznaczonych pomiędzy odcinkami pokolorowanymi
 		// na szaro
 		lengths = numberList.spaceLengths;
@@ -747,15 +823,6 @@ public class PicAPixArea {
 			if (length.listOfNumbersToBelong.size() == 1) {
 				PaNumber number = length.listOfNumbersToBelong.get(0);
 				if (number.scope[0] > length.s && number.scope[1] <= length.e) {
-					// if (isVertical) {
-					// System.out.print("V ");
-					// } else {
-					// System.out.print("H ");
-					// }
-					// System.out.print(i + ": ");
-					// System.out.println(number);
-					// System.out.println("(" + length.s + ", " + length.e +
-					// ")");
 
 					for (int j = length.s; j < number.scope[0]; j++) {
 						if (isVertical) {
@@ -767,16 +834,6 @@ public class PicAPixArea {
 					length.s = number.scope[0];
 				}
 				if (number.scope[1] < length.e && number.scope[0] >= length.s) {
-
-					// if (isVertical) {
-					// System.out.print("V ");
-					// } else {
-					// System.out.print("H ");
-					// }
-					// System.out.print(i + ": ");
-					// System.out.println(number);
-					// System.out.println("(" + length.s + ", " + length.e +
-					// ")");
 
 					for (int j = length.e; j > number.scope[1]; j--) {
 						if (isVertical) {
@@ -793,28 +850,13 @@ public class PicAPixArea {
 			for (PaNumber number : length.listOfNumbersToBelong) {
 				// Jeżeli liczba w ogóle nie należy do przestrzeni to kontynuuj
 				if (number.scope[1] < length.s || number.scope[0] > length.e) {
-					// if (isVertical) {
-					// System.out.print("V ");
-					// } else {
-					// System.out.print("H ");
-					// }
-					// System.out.print(i + ": nie należy, to usun : ");
-					// System.out.println(number);
-					// System.out.println("(" + length.s + ", " + length.e +
-					// ")");
+
 					// length.listOfNumbersToBelong.remove(number);
 					continue;
 				}
 
 				if (length.e - number.scope[0] + 1 < number.val) {
-					if (isVertical) {
-						System.out.print("V ");
-					} else {
-						System.out.print("H ");
-					}
-					System.out.print(i + ": ");
-					System.out.println(number);
-					System.out.println("(" + length.s + ", " + length.e + ")");
+
 					for (int z = k + 1; z < lengths.size(); z++) {
 						Length nextLength = lengths.get(z);
 						// Szukanie czy liczba należy do przestrzeni
@@ -826,8 +868,7 @@ public class PicAPixArea {
 							}
 						}
 						if (isBelong) {
-							// System.out.println("Nextlength(" + nextLength.s +
-							// ", " + nextLength.e + ")");
+
 							number.changeScopeLeft(numberList.numbers,
 									nextLength.s);
 
@@ -837,14 +878,7 @@ public class PicAPixArea {
 				}
 
 				if (number.scope[1] - length.s + 1 < number.val) {
-					if (isVertical) {
-						System.out.print("V ");
-					} else {
-						System.out.print("H ");
-					}
-					System.out.print(i + ": ");
-					System.out.println(number);
-					System.out.println("(" + length.s + ", " + length.e + ")");
+
 					for (int z = k - 1; z >= 0; z--) {
 						Length nextLength = lengths.get(z);
 						// Szukanie czu liczba należy od przestrzeni
@@ -865,6 +899,64 @@ public class PicAPixArea {
 				}
 			}
 
+		}
+	}
+
+	private void tryEliminateField(Length length, int n, boolean isVertical,
+			int i) {
+
+		if (length.listOfNumbersToBelong.size() < 2)
+			return;
+
+		Field leftField = null, rightField = null;
+
+		if (length.s - 1 > 0) {
+			if (isVertical) {
+				leftField = this.area[length.s - 1][i];
+			} else {
+				leftField = this.area[i][length.s - 1];
+			}
+		}
+
+		if (length.e + 1 < n) {
+			if (isVertical) {
+				rightField = this.area[length.e + 1][i];
+			} else {
+				rightField = this.area[i][length.e + 1];
+			}
+		}
+		boolean isOk = false;
+		if (leftField != null) {
+			if (leftField.type == ABSENCE) {
+				for (PaNumber number : length.listOfNumbersToBelong) {
+					if (number.scope[0] <= length.s - 1
+							&& number.scope[1] >= length.e
+							&& length.e - (length.s - 1) + 1 <= number.val) {
+						isOk = true;
+						break;
+					}
+				}
+				if (!isOk) {
+					leftField.changeType(EMPTY);
+				}
+			}
+		}
+
+		isOk = false;
+		if (rightField != null) {
+			if (rightField.type == ABSENCE) {
+				for (PaNumber number : length.listOfNumbersToBelong) {
+					if (number.scope[0] <= length.s
+							&& number.scope[1] >= length.e + 1
+							&& (length.e + 1) - length.s + 1 <= number.val) {
+						isOk = true;
+						break;
+					}
+				}
+				if (!isOk) {
+					rightField.changeType(EMPTY);
+				}
+			}
 		}
 	}
 
@@ -1204,8 +1296,8 @@ public class PicAPixArea {
 	public class PaNumber {
 		public byte val = 0; // Wartosc liczby
 		public boolean enable = true; // Czy liczba aktywna
-		public int[] scope = new int[2]; // Okreslenie zakresu mozliwego
-											// wystapienia liczby
+		public int[] scope = null;// new int[2]; // Okreslenie zakresu mozliwego
+									// wystapienia liczby
 		public boolean first = false; // czy liczba jest pierwsza
 		public boolean last = false; // czy liczba jest ostatnia
 		public int index; // Numer indeksu liczby w liście
@@ -1395,6 +1487,16 @@ public class PicAPixArea {
 		@Override
 		public String toString() {
 			return "[" + s + ", " + e + "]";
+		}
+
+		public String printNumbers() {
+			String output = "";
+
+			for (PaNumber number : listOfNumbersToBelong) {
+				output = output + number + ", ";
+			}
+
+			return output;
 		}
 	}
 
