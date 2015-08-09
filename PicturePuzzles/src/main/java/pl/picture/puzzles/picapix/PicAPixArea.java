@@ -2,12 +2,10 @@ package pl.picture.puzzles.picapix;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import pl.picture.puzzles.common.PuzzleUtilities;
@@ -129,7 +127,7 @@ public class PicAPixArea {
 		// Rozpoczęcie odmierzania czasu rozwiazywania lamiglowki
 		long startCountTimeElapsed = System.currentTimeMillis();
 		try {
-			System.setOut(new PrintStream(new File("output-file.txt")));
+			// System.setOut(new PrintStream(new File("output-file.txt")));
 			change = false;
 			int i = 0;
 			// I - szukanie pol, ktore musza zostac zamalowane.
@@ -178,20 +176,23 @@ public class PicAPixArea {
 				}
 
 				// DEBUG
-				i = 0;
-				System.out
-						.println(k
-								+ ": ------------------------------------------------------------");
-				for (ListOfNumber verticalList : this.verticalListsOfNumbers) {
-					printSpecOfLengths(verticalList, i++);
-				}
-				i = 0;
-				for (ListOfNumber horizontalList : this.horizontalListsOfNumbers) {
-					printSpecOfLengths(horizontalList, i++);
-				}
-				panel.repaint();
-				JOptionPane.showMessageDialog(panel, k, "Info",
-						JOptionPane.INFORMATION_MESSAGE);
+				// i = 0;
+				// System.out
+				// .println(k
+				// +
+				// ": ------------------------------------------------------------");
+				// for (ListOfNumber verticalList : this.verticalListsOfNumbers)
+				// {
+				// printSpecOfLengths(verticalList, i++);
+				// }
+				// i = 0;
+				// for (ListOfNumber horizontalList :
+				// this.horizontalListsOfNumbers) {
+				// printSpecOfLengths(horizontalList, i++);
+				// }
+				// panel.repaint();
+				// JOptionPane.showMessageDialog(panel, k, "Info",
+				// JOptionPane.INFORMATION_MESSAGE);
 
 			}
 
@@ -607,20 +608,25 @@ public class PicAPixArea {
 			}
 
 			if (firstNumber != null
-					&& firstLength.e - firstLength.s + 1 == firstNumber.val
+					// && firstLength.e - firstLength.s + 1 == firstNumber.val
 					&& firstNumber.scope[0] <= firstLength.s
 					&& firstNumber.scope[1] >= firstLength.e) {
 
-				firstNumber.changeScopeRight(numberList.numbers, firstLength.e);
+				// firstNumber.changeScopeRight(numberList.numbers,
+				// firstLength.e);
+				firstNumber.changeScopeRight(numberList.numbers, firstLength.s
+						+ firstNumber.val - 1);
 				changeBelongsToNumberForLengths(lengths, firstNumber);
 			}
 
 			if (lastNumber != null
-					&& lastLength.e - lastLength.s + 1 == lastNumber.val
+					// && lastLength.e - lastLength.s + 1 == lastNumber.val
 					&& lastNumber.scope[0] <= lastLength.s
 					&& lastNumber.scope[1] >= lastLength.e) {
 
-				lastNumber.changeScopeLeft(numberList.numbers, lastLength.s);
+				// lastNumber.changeScopeLeft(numberList.numbers, lastLength.s);
+				lastNumber.changeScopeLeft(numberList.numbers, lastLength.e
+						- lastNumber.val + 1);
 				changeBelongsToNumberForLengths(lengths, lastNumber);
 			}
 		}
@@ -682,20 +688,26 @@ public class PicAPixArea {
 					changeBelongsToNumberForLengths(lengths, numberOfL);
 
 				}
+
+				tryDrawMinLength(l, numberOfL.val, isVertical, n, i);
 			}
 
 			if (l.listOfNumbersToBelong.size() > 1) {
 
 				int val = l.listOfNumbersToBelong.get(0).val;
 				boolean theSame = true;
+				int minLength = val;
 				for (PaNumber number : l.listOfNumbersToBelong) {
 
 					if (val != number.val) {
 						theSame = false;
-						break;
+						// break;
+					}
+					if (number.val < minLength) {
+						minLength = number.val;
 					}
 				}
-				// Jeżeli wszystkie liczby na leżą do liczb o takiej samej
+				// Jeżeli wszystkie liczby należą do liczb o takiej samej
 				// wartości i długość odcinka odpowiada wartości tych liczb to
 				// pokoloruj graniczne pola na szaro
 				if (theSame && val == (l.e - l.s + 1)) {
@@ -714,6 +726,9 @@ public class PicAPixArea {
 						}
 					}
 				}
+
+				tryDrawMinLength(l, minLength, isVertical, n, i);
+
 				// Sprawdzanie czy liczba powinna należeć do odcinka, jeżeli jej
 				// zakres początkowy jest taki sam jak pozycja startowa odcinka
 				// sprawdz czy można prawidłowo wyznaczyć odcinek, to samo w
@@ -846,7 +861,9 @@ public class PicAPixArea {
 				}
 			}
 			// Sprawdz czy liczby, które należą do przestrzeni powinny do niej
-			// należeć, jeżeli nie to zmień danej liczbie zasięg
+			// należeć, jeżeli nie to zmień danej liczbie zasięg, dodatkowo
+			// sprawdź czy liczba należy tylko do tej przestrzeni, jeżeli tak to
+			// spróbuj zmienić jej zasięg
 			for (PaNumber number : length.listOfNumbersToBelong) {
 				// Jeżeli liczba w ogóle nie należy do przestrzeni to kontynuuj
 				if (number.scope[1] < length.s || number.scope[0] > length.e) {
@@ -897,8 +914,106 @@ public class PicAPixArea {
 					}
 
 				}
+				// Jeżeli lewy zasię większy od przestrzeni to sprawdź czy
+				// należy do jakiejś inne przestrzeni na lewo, jeżeli nie to
+				// ustaw lewy zasię taki jak początek przestrzeni
+				if (number.scope[0] < length.s) {
+					boolean isBelong = false;
+
+					Start: for (int z = k - 1; z >= 0; z--) {
+						Length leftLength = lengths.get(z);
+						for (PaNumber numb : leftLength.listOfNumbersToBelong) {
+							if (numb == number) {
+								isBelong = true;
+								break Start;
+							}
+						}
+
+						if (number.scope[0] >= leftLength.s) {
+							break;
+						}
+					}
+
+					if (!isBelong) {
+						number.changeScopeLeft(numberList.numbers, length.s);
+					}
+				}
+
+				if (number.scope[1] > length.e) {
+					boolean isBelong = false;
+
+					Start: for (int z = k + 1; z < lengths.size(); z++) {
+						Length rightLength = lengths.get(z);
+						for (PaNumber numb : rightLength.listOfNumbersToBelong) {
+							if (numb == number) {
+								isBelong = true;
+								break Start;
+							}
+						}
+
+						if (number.scope[1] <= rightLength.e) {
+							break;
+						}
+					}
+
+					if (!isBelong) {
+						number.changeScopeRight(numberList.numbers, length.e);
+					}
+				}
 			}
 
+		}
+	}
+
+	private void tryDrawMinLength(Length l, int minLength, boolean isVertical,
+			int n, int i) {
+		// Jeżeli np. minimalna liczba jest = 2 sprawdz czy można
+		// pokolorowac odcinek na dlugosc tej minimalnej
+		if (minLength > l.e - l.s + 1) {
+			Field leftField = null, rightField = null;
+
+			if (l.s - 1 > 0) {
+				if (isVertical) {
+					leftField = this.area[l.s - 1][i];
+				} else {
+					leftField = this.area[i][l.s - 1];
+				}
+			}
+
+			if (l.e + 1 < n) {
+				if (isVertical) {
+					rightField = this.area[l.e + 1][i];
+				} else {
+					rightField = this.area[i][l.e + 1];
+				}
+			}
+
+			if ((leftField != null && leftField.type == EMPTY) || l.s == 0) {
+
+				for (int j = l.s + 1; j <= l.s + minLength - 1; j++) {
+					if (isVertical) {
+						this.area[j][i].changeType(SELECTED);
+
+					} else {
+						this.area[i][j].changeType(SELECTED);
+
+					}
+				}
+			}
+
+			if ((rightField != null && rightField.type == EMPTY)
+					|| l.e == n - 1) {
+
+				for (int j = l.e - 1; j >= l.e - minLength + 1; j--) {
+					if (isVertical) {
+						this.area[j][i].changeType(SELECTED);
+
+					} else {
+						this.area[i][j].changeType(SELECTED);
+
+					}
+				}
+			}
 		}
 	}
 
@@ -1179,7 +1294,7 @@ public class PicAPixArea {
 				numberList.otherNumbers--;
 				numberList.sumOfNumbers -= number.val;
 				if (numberList.otherNumbers == 0) {
-					System.out.println("COMPLETE!!! " + i);
+					// System.out.println("COMPLETE!!! " + i);
 					selectAbsenceToEmpty(isVertical, i);
 				}
 				// Kolorowanie na szaro kratek, które graniczą z wyznaczonym
