@@ -467,8 +467,8 @@ public class PicAPixArea {
 				if (lastType == SELECTED) {
 					Length l = new Length(s, e - 1, SELECTED,
 							numberList.numbers);
-
-					numberList.selectedLengths.add(l);
+					if (!l.isComplete)
+						numberList.selectedLengths.add(l);
 				}
 
 				if (lastType == EMPTY) {
@@ -498,8 +498,8 @@ public class PicAPixArea {
 
 					Length l = new Length(s, e - 1, SELECTED,
 							numberList.numbers);
-
-					numberList.selectedLengths.add(l);
+					if (!l.isComplete)
+						numberList.selectedLengths.add(l);
 
 				}
 				lastType = field.type;
@@ -510,8 +510,8 @@ public class PicAPixArea {
 
 		if (lastType == SELECTED) {
 			Length l = new Length(s, e - 1, SELECTED, numberList.numbers);
-
-			numberList.selectedLengths.add(l);
+			if (!l.isComplete)
+				numberList.selectedLengths.add(l);
 		}
 		if (lastType != EMPTY) {
 			Length l = new Length(ss, e - 1, ABSENCE, numberList.numbers);
@@ -591,7 +591,8 @@ public class PicAPixArea {
 		// Sprawdzanie czy pierwszy odcinek odpowiada długości pierwszej liczby,
 		// jeżeli tak to zmniejsz jej zasięg, to samo z ostanim odcinkiem i
 		// ostatnią liczbą
-		if (size > 1) {
+		// if (size > 1) {
+		if (size > 0) {
 			Length firstLength = lengths.get(0);
 			Length lastLength = lengths.get(size - 1);
 
@@ -962,6 +963,209 @@ public class PicAPixArea {
 				}
 			}
 
+			// Może dojść do sytuacji, że odcinek, który leży w aktualnie
+			// sprawdzanej przestrzeni i jest nabardzie wysunięty np. na lewo
+			// pozwoli na zmniejszenie przestrzeni od lewej. Spróbuj znaleźć
+			// taką sytuację.
+
+			// Jeżeli nie jest to pierwsza przestrzeń to znajdź odcinek należący
+			// do niej najbardziej na lewo
+			if (k > 0) {
+
+				Length foundSelectLength = null;
+				for (Length selectLength : numberList.selectedLengths) {
+					if (selectLength.e < length.s) {
+						continue;
+					}
+					if (selectLength.s > length.e) {
+						break;
+					}
+
+					foundSelectLength = selectLength;
+					break;
+				}
+
+				if (foundSelectLength != null
+						&& foundSelectLength.listOfNumbersToBelong.size() > 1
+						&& foundSelectLength.s != length.s) {
+					// Szukanie największej liczby, która należy do znalezionego
+					// odcinka
+					PaNumber maxNumber = foundSelectLength.listOfNumbersToBelong
+							.get(0);
+
+					// Flaga określająca czy poprzednią liczbę można "wsadzić" w
+					// przestrzeń pomiędzy aktualną liczbą
+					boolean ok = false;
+
+					for (int z = 0; z < foundSelectLength.listOfNumbersToBelong
+							.size(); z++) {
+						PaNumber number = foundSelectLength.listOfNumbersToBelong
+								.get(z);
+
+						if (number.index - 1 < 0) {
+							continue;
+						}
+
+						PaNumber prevNumber = numberList.numbers
+								.get(number.index - 1);
+
+						if (!prevNumber.enable
+								|| prevNumber.scope[1] < length.s) {
+							continue;
+						}
+
+						if (number.val > maxNumber.val) {
+							maxNumber = number;
+						}
+
+						int diff = foundSelectLength.s - length.s - 1;
+
+						System.out.println("Diff: " + diff);
+						// Sprawdz czy można zmniejszyć różnicę
+						int checkDiff = foundSelectLength.s + number.val
+								- (length.e + 1);
+						System.out.println("CheckDiff: " + checkDiff);
+						System.out.println("prevNumber.val: " + prevNumber.val);
+						if (checkDiff > 0) {
+							diff = diff - checkDiff;
+						}
+
+						if (diff >= prevNumber.val) {
+							ok = true;
+							break;
+						}
+
+						prevNumber = number;
+					}
+
+					// Wyznaczenie różnicy pomiędzy początkiem przestrzeni a
+					// początkiem odcinka, który da się wyznaczy na podstawie
+					// znalezionej największej liczby
+					if (!ok) {
+						System.out
+								.println("Lewy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+						if (isVertical) {
+							System.out.println("V " + i);
+						} else {
+							System.out.println("H " + i);
+						}
+						System.out.println("Przestrzen: " + length);
+						System.out.println("Znaleziony odcinek: "
+								+ foundSelectLength);
+						int diff = (foundSelectLength.e - maxNumber.val + 1)
+								- length.s;
+
+						for (int j = length.s; j <= length.s + diff - 1; j++) {
+							if (isVertical) {
+								this.area[j][i].changeType(EMPTY);
+								System.out.println(j + ", " + i);
+							} else {
+								this.area[i][j].changeType(EMPTY);
+								System.out.println(i + ", " + j);
+							}
+						}
+					}
+				}
+			}
+
+			// Teraz w drugą stronę
+			if (k < lengths.size() - 1) {
+				Length foundSelectLength = null;
+				for (int z = numberList.selectedLengths.size() - 1; z >= 0; z--) {
+					Length selectLength = numberList.selectedLengths.get(z);
+
+					if (selectLength.s > length.e) {
+						continue;
+					}
+					if (selectLength.e < length.s) {
+						break;
+					}
+
+					foundSelectLength = selectLength;
+					break;
+				}
+
+				if (foundSelectLength != null
+						&& foundSelectLength.listOfNumbersToBelong.size() > 1
+						&& foundSelectLength.e != length.e) {
+
+					// Flaga określająca czy poprzednią liczbę można "wsadzić" w
+					// przestrzeń pomiędzy aktualną liczbą
+					PaNumber maxNumber = foundSelectLength.listOfNumbersToBelong
+							.get(foundSelectLength.listOfNumbersToBelong.size() - 1);
+
+					// Flaga określająca czy poprzednią liczbę można "wsadzić" w
+					// przestrzeń pomiędzy aktualną liczbą
+					boolean ok = true;
+
+					for (int z = foundSelectLength.listOfNumbersToBelong.size() - 1; z >= 0; z--) {
+						PaNumber number = foundSelectLength.listOfNumbersToBelong
+								.get(z);
+
+						if (number.index + 1 > numberList.numbers.size() - 1) {
+							continue;
+						}
+
+						PaNumber prevNumber = numberList.numbers
+								.get(number.index + 1);
+
+						// Jeżeli poprzednia liczba jest wyłączona lub nie
+						// należy do przestrzeni do omiń iterację
+						if (!prevNumber.enable
+								|| prevNumber.scope[0] > length.e) {
+							continue;
+						}
+
+						if (number.val > maxNumber.val) {
+							maxNumber = number;
+						}
+
+						int diff = length.e - foundSelectLength.e - 1;
+
+						int checkDiff = length.s + number.val
+								- foundSelectLength.e - 1;
+
+						if (checkDiff > 0) {
+							diff = diff - checkDiff;
+						}
+
+						if (diff >= prevNumber.val) {
+							ok = true;
+							break;
+						}
+						ok = false;
+					}
+
+					// Wyznaczenie różnicy pomiędzy końcem przestrzeni a
+					// końcem odcinka, który da się wyznaczy na podstawie
+					// znalezionej największej liczby
+					if (!ok) {
+						System.out
+								.println("Prawy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+						if (isVertical) {
+							System.out.println("V " + i);
+						} else {
+							System.out.println("H " + i);
+						}
+						System.out.println("Przestrzen: " + length);
+						System.out.println("Znaleziony odcinek: "
+								+ foundSelectLength);
+						int diff = length.e
+								- (foundSelectLength.s + maxNumber.val - 1);
+
+						for (int j = length.e; j >= length.e - diff + 1; j--) {
+							if (isVertical) {
+								this.area[j][i].changeType(EMPTY);
+								System.out.println(j + ", " + i);
+							} else {
+								this.area[i][j].changeType(EMPTY);
+								System.out.println(i + ", " + j);
+							}
+						}
+
+					}
+				}
+			}
 		}
 	}
 
@@ -1527,6 +1731,12 @@ public class PicAPixArea {
 
 					if (number.scope[0] <= s && number.scope[1] >= e) {
 
+						if (!number.enable && number.scope[0] == s
+								&& number.scope[1] == e) {
+							isComplete = true;
+							this.listOfNumbersToBelong.add(number);
+							break;
+						}
 						this.listOfNumbersToBelong.add(number);
 						continue;
 					}
