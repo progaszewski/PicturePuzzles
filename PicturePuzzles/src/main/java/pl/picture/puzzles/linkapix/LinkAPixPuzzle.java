@@ -2,16 +2,25 @@ package pl.picture.puzzles.linkapix;
 
 import java.io.File;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import pl.picture.puzzles.common.Puzzle;
+import pl.picture.puzzles.windows.Messages;
 
 public class LinkAPixPuzzle extends Puzzle {
 
+	private LinkAPixPanel laPanel;
+	private LinkAPixArea linkAPixArea;
+
+	public LinkAPixPuzzle() {
+
+		this.laPanel = new LinkAPixPanel();
+	}
+
 	@Override
 	public JPanel getPanel() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.laPanel;
 	}
 
 	@Override
@@ -21,20 +30,52 @@ public class LinkAPixPuzzle extends Puzzle {
 
 	@Override
 	public void check() {
-		// TODO Auto-generated method stub
+		if (linkAPixArea == null) {
+			return;
+		}
+
+		// Sprawdzanie czy gra została rozwiązana, jeżeli tak to true, w p.p.
+		// false
+		if (linkAPixArea.checkSolve()) {
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.success.text"),
+					Messages.getString("Puzzle.success.title.text"),
+					JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.failure.text"),
+					Messages.getString("Puzzle.failure.title.text"),
+					JOptionPane.ERROR_MESSAGE);
+
+		}
 
 	}
 
 	@Override
 	public void solve() {
-		// TODO Auto-generated method stub
+		if (linkAPixArea == null) {
+			return;
+		}
 
+		if (linkAPixArea.solvePuzzle()) {
+			laPanel.repaint();
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.success.solved.text"),
+					Messages.getString("Puzzle.success.title.text"),
+					JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			laPanel.repaint();
+			JOptionPane.showMessageDialog(null,
+					Messages.getString("Puzzle.failure.solved.text"),
+					Messages.getString("Puzzle.failure.title.text"),
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	@Override
 	public void drawPazzle(File f) {
-		// TODO Auto-generated method stub
-
+		linkAPixArea = new LinkAPixArea(f);
+		laPanel.drawArea(linkAPixArea);
 	}
 
 	@Override

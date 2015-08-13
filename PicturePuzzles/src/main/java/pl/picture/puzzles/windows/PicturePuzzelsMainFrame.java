@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 
 import pl.picture.puzzles.common.Puzzle;
 import pl.picture.puzzles.fillapix.FillAPixPuzzle;
+import pl.picture.puzzles.linkapix.LinkAPixPuzzle;
 import pl.picture.puzzles.picapix.PicAPixPuzzle;
 
 public class PicturePuzzelsMainFrame extends JFrame {
@@ -80,6 +81,12 @@ public class PicturePuzzelsMainFrame extends JFrame {
 
 		JMenuItem selectLinkAPix = new JMenuItem(
 				Messages.getString("PicturePuzzelsMainFrame.mntmLinkapix.text")); //$NON-NLS-1$
+		selectLinkAPix.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				puzzle = new LinkAPixPuzzle();
+				replacePanel(puzzle.getPanel());
+			}
+		});
 		puzzleMenu.add(selectLinkAPix);
 
 		JMenuItem selectPicAPix = new JMenuItem(
@@ -128,6 +135,9 @@ public class PicturePuzzelsMainFrame extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+
+		setTitle(Messages.getString("PicturePuzzelsMainFrame.this.title")
+				+ " (" + puzzle.getName() + ")");
 
 		JPanel panel = puzzle.getPanel();
 		contentPane.add(panel);
