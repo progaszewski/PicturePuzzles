@@ -22,43 +22,51 @@ public class LinkAPixArea {
 
 	private void init(File f) {
 
-		String areaFile = "";
 		numbers = new HashMap<Byte, ArrayList<LaNumber>>();
 		try {
 			Scanner s = new Scanner(f);
 
 			if (s.hasNextLine()) {
-				areaFile += s.nextLine();
-				x = areaFile.length();
-				y++;
+				String[] dim = s.nextLine().split(" ");
+				x = Integer.valueOf(dim[0]);
+				y = Integer.valueOf(dim[1]);
 			}
-			while (s.hasNextLine()) {
-				areaFile += s.nextLine();
-				y++;
-			}
-			s.close();
 
 			area = new Field[y][x];
 
 			for (int i = 0; i < y; i++) {
 				for (int j = 0; j < x; j++) {
-
 					area[i][j] = new Field();
-					if (areaFile.charAt(i * x + j) != '.') {
-						// System.out.println(p.charAt(i*x + j) + "");
-						byte value = Byte.parseByte(String.valueOf(areaFile
-								.charAt(i * x + j)));
-						LaNumber laNumber = new LaNumber(value, i, j);
-						area[i][j].number = laNumber;
+				}
+			}
 
-						ArrayList<LaNumber> listNumber = numbers.get(value);
-						if (listNumber == null) {
-							listNumber = new ArrayList<LaNumber>();
-							numbers.put(value, listNumber);
-						}
+			while (s.hasNextLine()) {
+				String[] values = s.nextLine().split(" ");
 
-						listNumber.add(laNumber);
-					}
+				if (values.length != 3) {
+					continue;
+				}
+
+				int i = Integer.valueOf(values[0]);
+				int j = Integer.valueOf(values[1]);
+				byte val = Byte.valueOf(values[2]);
+
+				LaNumber laNumber = new LaNumber(val, i, j);
+				area[i][j].number = laNumber;
+
+				ArrayList<LaNumber> listNumber = numbers.get(val);
+				if (listNumber == null) {
+					listNumber = new ArrayList<LaNumber>();
+					numbers.put(val, listNumber);
+				}
+
+				listNumber.add(laNumber);
+			}
+			s.close();
+
+			for (int i = 0; i < y; i++) {
+				for (int j = 0; j < x; j++) {
+
 				}
 
 			}
