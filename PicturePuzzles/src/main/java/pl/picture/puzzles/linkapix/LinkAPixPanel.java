@@ -18,6 +18,11 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 	private int marginLeft = 10, marginTop = 10, gridSize = 15;
 	private int width, height;
 
+	private boolean isSelectNumber = false;
+	private LinkAPixArea.LaNumber selectedNumber = null;
+	private LinkAPixArea.Field lastPosition = null;
+	private int sizePath = 0;
+
 	public LinkAPixPanel() {
 		addMouseListener(this);
 	}
@@ -67,32 +72,88 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 
 		}
 		// Rysowanie cyfr i zamalowywanie kratek
-		for (int i = 0; i < linesY - 1; i++) {
-			for (int j = 0; j < linesX - 1; j++) {
-				if (linkAPixArea.area[j][i].val == LinkAPixArea.ABSENCE) {
+		for (int i = 0; i < linesX - 1; i++) {
+			for (int j = 0; j < linesY - 1; j++) {
+				if (linkAPixArea.area[i][j].val == LinkAPixArea.ABSENCE) {
 					digitColor = Color.BLACK;
 				} else {
 
-					gridColor = Color.DARK_GRAY;
+					int width = gridSize;
+					int height = gridSize;
+					int marginLeftPrim = marginLeft;
+					int marginTopPrim = marginTop;
 
-					digitColor = Color.WHITE;
+					if ((linkAPixArea.area[i][j].belongsToNumber == selectedNumber || (selectedNumber != null && linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber))
+							&& (linkAPixArea.area[i][j].number == null || linkAPixArea.area[i][j].number.value != 1)) {
+						gridColor = Color.RED;
+
+						if (linkAPixArea.area[i][j].next != null) {
+							LinkAPixArea.Field next = linkAPixArea.area[i][j].next;
+
+							if (i == next.i - 1 && j == next.j) {
+								height++;
+							} else if (i == next.i + 1 && j == next.j) {
+								height++;
+								marginTopPrim--;
+							} else if (j == next.j - 1 && i == next.i) {
+								width++;
+
+							} else if (j == next.j + 1 && i == next.i) {
+								width++;
+								marginLeftPrim--;
+							}
+						}
+
+					} else {
+						if (j - 1 >= 0
+								&& linkAPixArea.area[i][j - 1].val == LinkAPixArea.SELECTED
+								&& linkAPixArea.area[i][j - 1] != linkAPixArea.area[i][j].next
+								&& linkAPixArea.area[i][j - 1] != linkAPixArea.area[i][j].prev) {
+
+							int x = marginLeftPrim + gridSize * j + j;
+							int y = marginTopPrim + gridSize * i + i;
+
+							g2d.setColor(Color.WHITE);
+							g2d.drawLine(x, y, x, y + gridSize + 1);
+						}
+
+						if (i - 1 >= 0
+								&& linkAPixArea.area[i - 1][j].val == LinkAPixArea.SELECTED
+								&& linkAPixArea.area[i - 1][j] != linkAPixArea.area[i][j].next
+								&& linkAPixArea.area[i - 1][j] != linkAPixArea.area[i][j].prev) {
+
+							int x = marginLeftPrim + gridSize * j + j;
+							int y = marginTopPrim + gridSize * i + i;
+
+							g2d.setColor(Color.WHITE);
+							g2d.drawLine(x, y, x + gridSize + 1, y);
+						}
+
+						gridColor = Color.BLACK;
+					}
+
+					if (linkAPixArea.area[i][j].number == selectedNumber) {
+						digitColor = Color.BLACK;
+					} else {
+						digitColor = Color.WHITE;
+					}
 					g2d.setColor(gridColor);
-					g2d.fillRect(marginLeft + 1 + gridSize * i + i, marginTop
-							+ 1 + gridSize * j + j, gridSize, gridSize);
+					g2d.fillRect(marginLeftPrim + 1 + gridSize * j + j,
+							marginTopPrim + 1 + gridSize * i + i, width, height);
 				}
 
 				g2d.setColor(digitColor);
 				g2d.setFont(new Font(null, Font.BOLD, 11));
 				// Cyfry
-				if (linkAPixArea.area[j][i].number != null) {
+				if (linkAPixArea.area[i][j].number != null) {
 					int moveDigitRigth = 6;
-					if (linkAPixArea.area[j][i].number.value > 9) {
+					if (linkAPixArea.area[i][j].number.value > 9) {
 						moveDigitRigth = 3;
 					}
 
-					g2d.drawString(linkAPixArea.area[j][i].number.value + "",
-							marginLeft + moveDigitRigth + gridSize * i + i,
-							marginTop + 13 + gridSize * j + j);
+					g2d.drawString(linkAPixArea.area[i][j].number.value + "",
+							marginLeft + moveDigitRigth + gridSize * j + j,
+							marginTop + 13 + gridSize * i + i);
 				}
 
 			}
@@ -119,28 +180,134 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		int x, y, i, j;
+		int x, y, j, i;
 
 		x = e.getX();
 		y = e.getY();
 
-		i = (x - marginLeft) / (gridSize + 1);
-		j = (y - marginTop) / (gridSize + 1);
+		j = (x - marginLeft) / (gridSize + 1);
+		i = (y - marginTop) / (gridSize + 1);
 
 		// System.out.println(x + " " + y);
 
 		if (x - marginLeft > 0 && y - marginTop > 0
-				&& i * (gridSize + 1) + marginLeft != x
-				&& j * (gridSize + 1) + marginTop != y && i < linkAPixArea.x
-				&& j < linkAPixArea.y) {
+				&& j * (gridSize + 1) + marginLeft != x
+				&& i * (gridSize + 1) + marginTop != y && j < linkAPixArea.x
+				&& i < linkAPixArea.y) {
 
-			if (linkAPixArea.area[j][i].val == LinkAPixArea.SELECTED) {
-				linkAPixArea.area[j][i].val = LinkAPixArea.ABSENCE;
+			// if (linkAPixArea.area[j][i].val == LinkAPixArea.SELECTED) {
+			// linkAPixArea.area[j][i].val = LinkAPixArea.ABSENCE;
+			// } else {
+			// linkAPixArea.area[j][i].val = LinkAPixArea.SELECTED;
+			// }
+
+			if (e.getButton() == MouseEvent.BUTTON3) {
+				if (selectedNumber == null
+						&& linkAPixArea.area[i][j].number != null) {
+					selectedNumber = linkAPixArea.area[i][j].number;
+
+					if (selectedNumber.value == 1) {
+
+						selectedNumber = null;
+						return;
+					}
+
+					linkAPixArea.area[i][j].setBelongsToNumber(selectedNumber);
+					lastPosition = linkAPixArea.area[i][j];
+					repaint();
+					return;
+				}
+
+				if (selectedNumber != null
+						&& linkAPixArea.area[i][j].number == selectedNumber) {
+
+					if (selectedNumber.secondNumber == null) {
+						selectedNumber.unselet();
+					}
+					selectedNumber = null;
+					lastPosition = null;
+					repaint();
+					return;
+				}
 			} else {
-				linkAPixArea.area[j][i].val = LinkAPixArea.SELECTED;
-			}
+				if (selectedNumber == null
+						&& linkAPixArea.area[i][j].number != null
+						&& linkAPixArea.area[i][j].number.value == 1) {
+					if (linkAPixArea.area[i][j].val == LinkAPixArea.SELECTED) {
+						linkAPixArea.area[i][j].val = LinkAPixArea.ABSENCE;
+					} else {
+						linkAPixArea.area[i][j].val = LinkAPixArea.SELECTED;
+					}
 
-			repaint();
+					repaint();
+					return;
+				}
+
+				if (selectedNumber != null) {
+					System.out.println("Pressed: " + i + " " + j);
+					System.out.println("LastPosition: " + lastPosition.i + " "
+							+ lastPosition.j);
+
+					System.out.println(linkAPixArea.area[i][j]);
+
+					if (selectedNumber == linkAPixArea.area[i][j].number) {
+						selectedNumber.unselet();
+						selectedNumber = null;
+						lastPosition = null;
+
+						repaint();
+						return;
+					}
+
+					if (i == lastPosition.i && j == lastPosition.j) {
+						System.out.println("1");
+
+						lastPosition = linkAPixArea.area[i][j].prev;
+
+						linkAPixArea.area[i][j].val = LinkAPixArea.ABSENCE;
+						linkAPixArea.area[i][j].belongsToNumber = null;
+						linkAPixArea.area[i][j].next = null;
+						linkAPixArea.area[i][j].prev = null;
+
+						repaint();
+						return;
+					}
+
+					if ((((i == lastPosition.i - 1 || i == lastPosition.i + 1) && j == lastPosition.j) || (i == lastPosition.i && (j == lastPosition.j - 1 || j == lastPosition.j + 1)))
+							&& linkAPixArea.area[i][j].val != LinkAPixArea.SELECTED
+							&& (linkAPixArea.area[i][j].number == null || linkAPixArea.area[i][j].number.value == selectedNumber.value)
+							&& selectedNumber.secondNumber == null) {
+
+						System.out.println("2");
+						if (linkAPixArea.area[i][j].number != null
+								&& linkAPixArea.area[i][j].number.value == selectedNumber.value) {
+
+							selectedNumber.secondNumber = linkAPixArea.area[i][j].number;
+							linkAPixArea.area[i][j].number.secondNumber = selectedNumber;
+							linkAPixArea.area[i][j]
+									.setBelongsToNumber(selectedNumber);
+
+							lastPosition.next = linkAPixArea.area[i][j];
+							linkAPixArea.area[i][j].prev = lastPosition;
+							selectedNumber = null;
+							lastPosition = null;
+
+							repaint();
+							return;
+						}
+
+						lastPosition.next = linkAPixArea.area[i][j];
+						linkAPixArea.area[i][j].prev = lastPosition;
+						lastPosition = linkAPixArea.area[i][j];
+
+						linkAPixArea.area[i][j]
+								.setBelongsToNumber(selectedNumber);
+
+						repaint();
+						return;
+					}
+				}
+			}
 		}
 
 	}

@@ -36,7 +36,7 @@ public class LinkAPixArea {
 
 			for (int i = 0; i < y; i++) {
 				for (int j = 0; j < x; j++) {
-					area[i][j] = new Field();
+					area[i][j] = new Field(i, j);
 				}
 			}
 
@@ -64,12 +64,6 @@ public class LinkAPixArea {
 			}
 			s.close();
 
-			for (int i = 0; i < y; i++) {
-				for (int j = 0; j < x; j++) {
-
-				}
-
-			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -90,21 +84,76 @@ public class LinkAPixArea {
 		public Byte val = -1; // -1: BRAK, 1: ZAZNACZONE
 		public LaNumber number; // Liczba
 
-		public Field() {
+		public int i, j; // pozycja pola
 
+		public Field next, prev;
+		public LaNumber belongsToNumber;
+
+		public Field(int i, int j) {
+			this.i = i;
+			this.j = j;
 		}
 
 		public Field(Field field) {
 			this.number = field.number;
 			this.val = field.val;
+			this.i = field.i;
+			this.j = field.j;
+		}
+
+		public void setBelongsToNumber(LaNumber selectedNumber) {
+			this.val = SELECTED;
+			this.belongsToNumber = selectedNumber;
+
+		}
+
+		@Override
+		public String toString() {
+			String num = " number: ";
+
+			if (number != null) {
+				num = num + number.value + " " + number.secondNumber;
+			} else {
+				num = num + "NULL";
+			}
+
+			String n = " next: ";
+			if (next != null) {
+				n = n + next.i + " " + next.j;
+			} else {
+				n = n + "NULL";
+			}
+
+			String p = " prev: ";
+			if (prev != null) {
+				p = p + prev.i + " " + prev.j;
+			} else {
+				p = p + "NULL";
+			}
+
+			String b = " belognsTo: ";
+
+			if (belongsToNumber != null) {
+				b = b + belongsToNumber.value;
+			} else {
+				b = b + "NULL";
+			}
+			return val + num + n + p + b;
 		}
 	}
 
-	// Klasa reprezentujaca liczbe, ktora okresla ile pol nalezy zaznaczyc
+	// Klasa reprezentujaca liczbe, ktora określa długość odcinka jaki trzeba
+	// wyznaczyć, odcinek musi być połączony z inną liczą o takiej samej
+	// wartości
 	class LaNumber {
 		public final byte value; // Wartosc liczby
 
 		public final int i, j; // pozycja liczny
+
+		public LaNumber secondNumber; // druga liczba z która jest połączona
+
+		// Ścieżka do drugiej liczby
+		// public LinkedList<Field> path = new LinkedList<Field>();
 
 		public LaNumber(byte value, int i, int j) {
 			this.value = value;
@@ -116,7 +165,56 @@ public class LinkAPixArea {
 			this.value = number.value;
 			this.i = number.i;
 			this.j = number.j;
+			this.secondNumber = number.secondNumber;
+			// this.path = number.path;
 		}
+
+		public void unselet() {
+			Field field = area[this.i][this.j];
+
+			if (field.next != null) {
+				clearNextFields(field.next);
+			} else if (field.prev != null) {
+				clearPrevFields(field.prev);
+			}
+
+			field.val = ABSENCE;
+			field.belongsToNumber = null;
+			field.next = null;
+			field.prev = null;
+			this.secondNumber = null;
+		}
+	}
+
+	public void clearNextFields(Field next) {
+		next.val = ABSENCE;
+		next.belongsToNumber = null;
+
+		if (next.next != null) {
+			clearNextFields(next.next);
+		} else {
+			if (next.number != null) {
+				next.number.secondNumber = null;
+			}
+		}
+
+		next.next = null;
+		next.prev = null;
+	}
+
+	public void clearPrevFields(Field prev) {
+		prev.val = ABSENCE;
+		prev.belongsToNumber = null;
+
+		if (prev.prev != null) {
+			clearPrevFields(prev.prev);
+		} else {
+			if (prev.number != null) {
+				prev.number.secondNumber = null;
+			}
+		}
+		prev.next = null;
+		prev.prev = null;
 	}
 
 }
