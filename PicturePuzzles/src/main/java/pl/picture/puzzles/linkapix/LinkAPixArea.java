@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -70,12 +71,19 @@ public class LinkAPixArea {
 	}
 
 	public boolean solvePuzzle() {
-		// TODO Auto-generated method stub
+
+		// numbers.keySet().toArray();
+		boolean change = true;
+		while (change) {
+			change = false;
+			for (Byte number : numbers.keySet()) {
+				List<LaNumber> numbersByKey = numbers.get(number);
+			}
+		}
 		return false;
 	}
 
 	public boolean checkSolve() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

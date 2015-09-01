@@ -18,10 +18,11 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 	private int marginLeft = 10, marginTop = 10, gridSize = 15;
 	private int width, height;
 
-	private boolean isSelectNumber = false;
+	// private boolean isSelectNumber = false;
 	private LinkAPixArea.LaNumber selectedNumber = null;
 	private LinkAPixArea.Field lastPosition = null;
-	private int sizePath = 0;
+
+	// private int sizePath = 0;
 
 	public LinkAPixPanel() {
 		addMouseListener(this);
