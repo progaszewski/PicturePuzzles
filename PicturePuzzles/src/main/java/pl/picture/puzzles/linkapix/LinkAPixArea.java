@@ -76,15 +76,116 @@ public class LinkAPixArea {
 		boolean change = true;
 		while (change) {
 			change = false;
+
+			// pobranie listy liczb o wartosci 1
+			List<LaNumber> oneNumbers = numbers.get((byte) 1);
+			for (LaNumber laNumber : oneNumbers) {
+				area[laNumber.i][laNumber.j].val = SELECTED;
+			}
+
+			// Usinięcie listy liczb o wartości 1
+			numbers.remove((byte) 1);
+
 			for (Byte number : numbers.keySet()) {
 				List<LaNumber> numbersByKey = numbers.get(number);
+
+				for (LaNumber laNumber : numbersByKey) {
+					System.out.println(laNumber.value + " [" + laNumber.i
+							+ ", " + laNumber.j + "]");
+					if (laNumber.secondNumber == null) {
+						searchSecondNumber(laNumber);
+
+						// jeżeli znaleziono tylko jedną "drugą liczbę" to
+						// znaczy, że można tylko te dwie liczby połączyć, czyli
+						// wskaż tej drugiej liczbe, liczbę aktualnie iterowaną
+						if (laNumber.secondNumber.size() == 1) {
+							LaNumber secondNumber = laNumber.secondNumber
+									.get(0);
+
+							secondNumber.secondNumber = new ArrayList<LaNumber>();
+							secondNumber.secondNumber.add(laNumber);
+						}
+					}
+
+					// DEBUG
+					drugieLiczby(laNumber);
+				}
 			}
 		}
 		return false;
 	}
 
+	// Szukanie liczby z którymi możę się polączyć dana liczba
+	private void searchSecondNumber(LaNumber laNumber) {
+
+		int diff = 0;
+		int startI = laNumber.i - laNumber.value + 1;
+
+		// Sprawdzamy czy zakres w górę wybiega poza planszę
+		// jeżeli tak to ustaw wartość diff o długość tej różnicy
+		if (startI < 0) {
+			diff = laNumber.value - 1 - laNumber.i;
+			startI = 0;
+		}
+
+		int k = 0;
+		int l = 0;
+		for (int i = startI; i <= laNumber.i + (laNumber.value - 1)
+				&& i < this.y; i++) {
+
+			// Jeżęli i jest mniejsze od pozycji "i" sprawdzanej liczby to
+			// zwiększaj "k"
+			if (i <= laNumber.i) {
+				k = l + diff;
+			} else {
+				k = 2 * laNumber.value - 2 - (l + diff);
+			}
+
+			l++;
+			int startJ = laNumber.j - k;
+
+			if (startJ < 0) {
+				startJ = (k - laNumber.j) % 2;
+			}
+
+			for (int j = startJ; j <= laNumber.j + k && j < this.x; j += 2) {
+
+				Field field = this.area[i][j];
+
+				// Jeżeli pole jest liczbą i ta liczba nie jest aktualnie
+				// iterowaną liczbą oraz ta liczba jest takiej samej wartości co
+				// aktualnie iterowana liczba oraz liczba nie posiada tylko
+				// jednej drugiej liczby to dodaj są do listy "drugich liczby"
+				if (field.number != null
+						&& field.number != laNumber
+						&& field.number.value == laNumber.value
+						&& (field.number.secondNumber == null || field.number.secondNumber
+								.size() > 1)) {
+
+					if (laNumber.secondNumber == null) {
+						laNumber.secondNumber = new ArrayList<LaNumber>();
+					}
+
+					laNumber.secondNumber.add(field.number);
+				}
+			}
+		}
+
+	}
+
 	public boolean checkSolve() {
 		return false;
+	}
+
+	// DEBUG
+	private void drugieLiczby(LaNumber laNumber) {
+		System.out.println(laNumber.value + " [" + laNumber.i + ", "
+				+ laNumber.j + "] secondNumbers:");
+		for (LaNumber secNumber : laNumber.secondNumber) {
+			System.out.print(secNumber.value + " [" + secNumber.i + ", "
+					+ secNumber.j + "], ");
+		}
+		System.out.println("\n");
 	}
 
 	// Klasa reprezentujaca pole (kratke do zanzaczenia)
@@ -158,7 +259,8 @@ public class LinkAPixArea {
 
 		public final int i, j; // pozycja liczny
 
-		public LaNumber secondNumber; // druga liczba z która jest połączona
+		public List<LaNumber> secondNumber; // druga liczba z która jest
+											// połączona
 
 		// Ścieżka do drugiej liczby
 		// public LinkedList<Field> path = new LinkedList<Field>();
@@ -177,7 +279,7 @@ public class LinkAPixArea {
 			// this.path = number.path;
 		}
 
-		public void unselet() {
+		public void unselect() {
 			Field field = area[this.i][this.j];
 
 			if (field.next != null) {

@@ -7,8 +7,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 
 import javax.swing.JPanel;
+
+import pl.picture.puzzles.linkapix.LinkAPixArea.LaNumber;
 
 public class LinkAPixPanel extends JPanel implements MouseListener {
 
@@ -84,7 +87,8 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 					int marginLeftPrim = marginLeft;
 					int marginTopPrim = marginTop;
 
-					if ((linkAPixArea.area[i][j].belongsToNumber == selectedNumber || (selectedNumber != null && linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber))
+					if ((linkAPixArea.area[i][j].belongsToNumber == selectedNumber || (selectedNumber != null && (linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber || (selectedNumber.secondNumber != null && linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber
+							.get(0)))))
 							&& (linkAPixArea.area[i][j].number == null || linkAPixArea.area[i][j].number.value != 1)) {
 						gridColor = Color.RED;
 
@@ -223,7 +227,7 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 						&& linkAPixArea.area[i][j].number == selectedNumber) {
 
 					if (selectedNumber.secondNumber == null) {
-						selectedNumber.unselet();
+						selectedNumber.unselect();
 					}
 					selectedNumber = null;
 					lastPosition = null;
@@ -252,7 +256,7 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 					System.out.println(linkAPixArea.area[i][j]);
 
 					if (selectedNumber == linkAPixArea.area[i][j].number) {
-						selectedNumber.unselet();
+						selectedNumber.unselect();
 						selectedNumber = null;
 						lastPosition = null;
 
@@ -283,8 +287,12 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 						if (linkAPixArea.area[i][j].number != null
 								&& linkAPixArea.area[i][j].number.value == selectedNumber.value) {
 
-							selectedNumber.secondNumber = linkAPixArea.area[i][j].number;
-							linkAPixArea.area[i][j].number.secondNumber = selectedNumber;
+							selectedNumber.secondNumber = new ArrayList<LaNumber>();
+							selectedNumber.secondNumber
+									.add(linkAPixArea.area[i][j].number);
+							linkAPixArea.area[i][j].number.secondNumber = new ArrayList<LaNumber>();
+							linkAPixArea.area[i][j].number.secondNumber
+									.add(selectedNumber);
 							linkAPixArea.area[i][j]
 									.setBelongsToNumber(selectedNumber);
 
