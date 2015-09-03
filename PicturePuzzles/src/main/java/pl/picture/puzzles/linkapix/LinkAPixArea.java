@@ -106,11 +106,185 @@ public class LinkAPixArea {
 							secondNumber.secondNumber.add(laNumber);
 						}
 					}
+					// sprawdź czy aby napewno
+					// można dojsć do wszystkich znalezionych liczb
+					for (LaNumber secNumber : laNumber.secondNumber) {
+						List<Field[]> paths = findPathToNumber(laNumber,
+								secNumber);
+					}
 
 					// DEBUG
 					drugieLiczby(laNumber);
 				}
 			}
+		}
+		return false;
+	}
+
+	// Metoda szukająca ściężki do danej liczby, zwraca listę ścieżek
+	private List<Field[]> findPathToNumber(LaNumber sourceNumber,
+			LaNumber targetNumber) {
+
+		List<Field[]> paths = new ArrayList<Field[]>();
+
+		Field[] path = new Field[sourceNumber.value];
+
+		findingPath(sourceNumber, targetNumber, paths, path,
+				sourceNumber.value - 1, 0, sourceNumber.i, sourceNumber.j);
+
+		return paths;
+	}
+
+	// Metoda rekurencyjna. szukanie ścieżki
+	private void findingPath(LaNumber sourceNumber, LaNumber targetNumber,
+			List<Field[]> paths, Field[] path, int leftLength, int index,
+			int posI, int posJ) {
+
+		// Jeżeli znaleziono więcej niż jedną ścieżkę zakończ poszukiwania
+		if (paths.size() > 1)
+			return;
+
+		Field field = area[posI][posJ];
+		path[index] = field;
+
+		if (leftLength == 0 && field.number == targetNumber) {
+			paths.add(path.clone());
+			return;
+		}
+
+		if (checkIfCanGoThere(targetNumber, leftLength, index, path, posI - 1,
+				posJ)) {
+
+			findingPath(sourceNumber, targetNumber, paths, path,
+					leftLength - 1, index + 1, posI - 1, posJ);
+		}
+
+	}
+
+	// Fukcja sprawdzająca czy można przejsć do danego pola
+	private boolean checkIfCanGoThere(LaNumber targetNumber, int leftLength,
+			int index, Field[] path, int posI, int posJ) {
+
+		// Jeżeli pozycja wybiega poza obszar planszy zwróc fałsz
+		if (posI < 0 || posI >= this.y || posJ < 0 || posJ >= this.x) {
+			return false;
+		}
+
+		Field field = area[posI][posJ];
+
+		if (field.val == SELECTED
+				|| field.number != targetNumber
+				|| checkIfBelognsToPath(path, index, field)
+				|| checkIfBlockSomeNumbers(path, index, targetNumber, posI,
+						posJ)) {
+			return false;
+		}
+
+		return false;
+	}
+
+	// Metoda sprawdzająca czy liczby występujące obok pola są blokowane,
+	// pierwszy etap szuka liczb, jeżeli znajdzie liczbe to spwradza czy jest
+	// blokowana
+	private boolean checkIfBlockSomeNumbers(Field[] path, int index,
+			LaNumber targetNumber, int posI, int posJ) {
+
+		if (posI - 1 >= 0 && area[posI - 1][posJ].number != null
+				&& area[posI - 1][posJ].val != SELECTED
+				&& area[posI - 1][posJ] != path[0]
+				&& area[posI - 1][posJ].number != targetNumber) {
+
+			if (checkIfNumberIsBlock(area[posI - 1][posJ], path, index)) {
+				return true;
+			}
+		}
+
+		if (posI + 1 < this.y && area[posI + 1][posJ].number != null
+				&& area[posI + 1][posJ].val != SELECTED
+				&& area[posI + 1][posJ] != path[0]
+				&& area[posI + 1][posJ].number != targetNumber) {
+
+			if (checkIfNumberIsBlock(area[posI + 1][posJ], path, index)) {
+				return true;
+			}
+		}
+
+		if (posJ - 1 >= 0 && area[posI][posJ - 1].number != null
+				&& area[posI][posJ - 1].val != SELECTED
+				&& area[posI][posJ - 1] != path[0]
+				&& area[posI][posJ - 1].number != targetNumber) {
+
+			if (checkIfNumberIsBlock(area[posI][posJ - 1], path, index)) {
+				return true;
+			}
+		}
+
+		if (posJ + 1 < this.x && area[posI][posJ + 1].number != null
+				&& area[posI][posJ + 1].val != SELECTED
+				&& area[posI][posJ + 1] != path[0]
+				&& area[posI][posJ + 1].number != targetNumber) {
+
+			if (checkIfNumberIsBlock(area[posI][posJ + 1], path, index)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// Sprawdza czy liczba jest blokowana
+	private boolean checkIfNumberIsBlock(Field field, Field[] path, int index) {
+
+		int k = 0;
+
+		if (field.number != null && field.number.value == 2) {
+			return false;
+		}
+
+		if (field.i - 1 < 0
+				|| area[field.i - 1][field.j].val == SELECTED
+				|| area[field.i - 1][field.j].number != null
+				|| checkIfBelognsToPath(path, index, area[field.i - 1][field.j])) {
+
+			k++;
+		}
+
+		if (field.i + 1 >= this.y
+				|| area[field.i + 1][field.j].val == SELECTED
+				|| area[field.i + 1][field.j].number != null
+				|| checkIfBelognsToPath(path, index, area[field.i + 1][field.j])) {
+
+			k++;
+		}
+
+		if (field.j - 1 < 0
+				|| area[field.i][field.j - 1].val == SELECTED
+				|| area[field.i][field.j - 1].number != null
+				|| checkIfBelognsToPath(path, index, area[field.i][field.j - 1])) {
+
+			k++;
+		}
+
+		if (field.j + 1 >= this.x
+				|| area[field.i][field.j + 1].val == SELECTED
+				|| area[field.i][field.j + 1].number != null
+				|| checkIfBelognsToPath(path, index, area[field.i][field.j + 1])) {
+
+			k++;
+		}
+
+		if (k == 4)
+			return true;
+
+		return false;
+	}
+
+	// Metoda sprawdzająca czy pole należy do aktualnie wyznaczonej ścieżki
+	private boolean checkIfBelognsToPath(Field[] path, int index, Field field) {
+
+		for (int i = 0; i < index; i++) {
+			if (path[i] == field)
+				return true;
 		}
 		return false;
 	}
