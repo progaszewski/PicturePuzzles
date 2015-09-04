@@ -57,7 +57,7 @@ public class LinkAPixPuzzle extends Puzzle {
 			return;
 		}
 
-		if (linkAPixArea.solvePuzzle()) {
+		if (linkAPixArea.solvePuzzle(laPanel)) {
 			laPanel.repaint();
 			JOptionPane.showMessageDialog(null,
 					Messages.getString("Puzzle.success.solved.text"),

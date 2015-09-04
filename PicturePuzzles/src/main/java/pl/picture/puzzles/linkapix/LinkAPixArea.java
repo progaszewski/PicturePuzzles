@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import javax.swing.JPanel;
+
 public class LinkAPixArea {
 
 	public static final byte ABSENCE = -1; // Nieoznaczone pole
@@ -70,55 +72,191 @@ public class LinkAPixArea {
 		}
 	}
 
-	public boolean solvePuzzle() {
+	public boolean solvePuzzle(JPanel panel) {
 
 		// numbers.keySet().toArray();
 		boolean change = true;
-		while (change) {
-			change = false;
 
-			// pobranie listy liczb o wartosci 1
-			List<LaNumber> oneNumbers = numbers.get((byte) 1);
-			for (LaNumber laNumber : oneNumbers) {
-				area[laNumber.i][laNumber.j].val = SELECTED;
-			}
+		// pobranie listy liczb o wartosci 1
+		List<LaNumber> oneNumbers = numbers.get((byte) 1);
+		for (LaNumber laNumber : oneNumbers) {
+			area[laNumber.i][laNumber.j].val = SELECTED;
+		}
 
-			// Usinięcie listy liczb o wartości 1
-			numbers.remove((byte) 1);
+		// Usinięcie listy liczb o wartości 1
+		numbers.remove((byte) 1);
 
-			for (Byte number : numbers.keySet()) {
-				List<LaNumber> numbersByKey = numbers.get(number);
+		try {
+			while (change) {
+				change = false;
 
-				for (LaNumber laNumber : numbersByKey) {
-					System.out.println(laNumber.value + " [" + laNumber.i
-							+ ", " + laNumber.j + "]");
-					if (laNumber.secondNumber == null) {
-						searchSecondNumber(laNumber);
+				List<Byte> numberKeysToRemove = new ArrayList<Byte>();
 
-						// jeżeli znaleziono tylko jedną "drugą liczbę" to
-						// znaczy, że można tylko te dwie liczby połączyć, czyli
-						// wskaż tej drugiej liczbe, liczbę aktualnie iterowaną
-						if (laNumber.secondNumber.size() == 1) {
-							LaNumber secondNumber = laNumber.secondNumber
-									.get(0);
+				for (Byte number : numbers.keySet()) {
+					List<LaNumber> numbersByKey = numbers.get(number);
 
-							secondNumber.secondNumber = new ArrayList<LaNumber>();
-							secondNumber.secondNumber.add(laNumber);
+					boolean change2 = true;
+
+					while (change2 && numbersByKey.size() > 0) {
+
+						change2 = false;
+
+						List<LaNumber> numbersByKeyToRemove = new ArrayList<LaNumber>();
+						for (LaNumber laNumber : numbersByKey) {
+							// System.out.println(laNumber.value + " ["
+							// + laNumber.i + ", " + laNumber.j + "]");
+
+							// Jeżeli pole do którego należy liczba jest
+							// pokolorowane to
+							// znaczy że liczba ta została już wyznaczona czyli
+							// można ją
+							// ominąć
+							if (area[laNumber.i][laNumber.j].val == SELECTED) {
+								continue;
+							}
+
+							if (laNumber.secondNumber == null) {
+								searchSecondNumber(laNumber);
+
+								// jeżeli znaleziono tylko jedną "drugą liczbę"
+								// to
+								// znaczy, że można tylko te dwie liczby
+								// połączyć,
+								// czyli
+								// wskaż tej drugiej liczbe, liczbę aktualnie
+								// iterowaną
+								if (laNumber.secondNumber.size() == 1) {
+									LaNumber secondNumber = laNumber.secondNumber
+											.get(0);
+
+									secondNumber.secondNumber = new ArrayList<LaNumber>();
+									secondNumber.secondNumber.add(laNumber);
+								}
+
+								change = change2 = true;
+							}
+							// sprawdź czy aby napewno
+							// można dojsć do wszystkich znalezionych liczb
+							if (laNumber.secondNumber.size() > 1) {
+								List<LaNumber> numbersToRemove = new ArrayList<LaNumber>();
+								for (LaNumber secNumber : laNumber.secondNumber) {
+
+									// Sprawdzanie czy druga liczba jest już
+									// oznaczona
+									if (area[secNumber.i][secNumber.j].val == SELECTED) {
+										numbersToRemove.add(secNumber);
+										continue;
+									}
+
+									List<Field[]> paths = findPathToNumber(
+											laNumber, secNumber);
+
+									if (paths.size() == 0) {
+										numbersToRemove.add(secNumber);
+									}
+								}
+
+								if (numbersToRemove.size() > 0) {
+									laNumber.secondNumber
+											.removeAll(numbersToRemove);
+
+									change = change2 = true;
+								}
+
+								// Jeżeli po usunięciu "drugich liczb" została
+								// tylko
+								// jedna druga liczba to połącz te liczby
+								// relacją
+								if (laNumber.secondNumber.size() == 1) {
+									LaNumber secondNumber = laNumber.secondNumber
+											.get(0);
+
+									secondNumber.secondNumber = new ArrayList<LaNumber>();
+									secondNumber.secondNumber.add(laNumber);
+
+									change = change2 = true;
+								}
+							}
+
+							// Jeżeli liczba ma tylko jednego brata sprawdź czy
+							// można
+							// wyznaczyć do niego sieżkę
+							if (laNumber.secondNumber.size() == 1) {
+								List<Field[]> paths = findPathToNumber(
+										laNumber, laNumber.secondNumber.get(0));
+
+								// if (laNumber.value > 2) {
+								// System.out.println(laNumber.value + " ["
+								// + laNumber.i + ", " + laNumber.j
+								// + "]");
+								// System.out.println("Size paths: "
+								// + paths.size());
+								// }
+
+								if (paths.size() == 1) {
+									drawPath(paths.get(0), laNumber);
+
+									numbersByKeyToRemove.add(laNumber);
+									numbersByKeyToRemove
+											.add(laNumber.secondNumber.get(0));
+
+									change = change2 = true;
+								}
+							}
+							// DEBUG
+							// drugieLiczby(laNumber);
+						}
+
+						if (numbersByKeyToRemove.size() > 0) {
+							numbersByKey.removeAll(numbersByKeyToRemove);
 						}
 					}
-					// sprawdź czy aby napewno
-					// można dojsć do wszystkich znalezionych liczb
-					for (LaNumber secNumber : laNumber.secondNumber) {
-						List<Field[]> paths = findPathToNumber(laNumber,
-								secNumber);
-					}
 
-					// DEBUG
-					drugieLiczby(laNumber);
+					if (numbersByKey.size() == 0) {
+						numberKeysToRemove.add(number);
+					}
+				}
+
+				if (numberKeysToRemove.size() > 0) {
+					for (Byte num : numberKeysToRemove) {
+						numbers.remove(num);
+					}
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			panel.repaint();
 		}
+
+		// Debug
+		for (Byte number : numbers.keySet()) {
+			List<LaNumber> numbersByKey = numbers.get(number);
+			for (LaNumber laNumber : numbersByKey) {
+				drugieLiczby(laNumber);
+			}
+
+		}
+
 		return false;
+	}
+
+	// Rysowanie wyznaczonej ścieżki
+	private void drawPath(Field[] fields, LaNumber laNumber) {
+
+		for (int i = 0; i < fields.length; i++) {
+			Field field = fields[i];
+
+			field.belongsToNumber = laNumber;
+			field.val = SELECTED;
+
+			if (i > 0) {
+				field.prev = fields[i - 1];
+			}
+
+			if (i < fields.length - 1) {
+				field.next = fields[i + 1];
+			}
+		}
 	}
 
 	// Metoda szukająca ściężki do danej liczby, zwraca listę ścieżek
@@ -159,6 +297,26 @@ public class LinkAPixArea {
 					leftLength - 1, index + 1, posI - 1, posJ);
 		}
 
+		if (checkIfCanGoThere(targetNumber, leftLength, index, path, posI + 1,
+				posJ)) {
+
+			findingPath(sourceNumber, targetNumber, paths, path,
+					leftLength - 1, index + 1, posI + 1, posJ);
+		}
+
+		if (checkIfCanGoThere(targetNumber, leftLength, index, path, posI,
+				posJ - 1)) {
+
+			findingPath(sourceNumber, targetNumber, paths, path,
+					leftLength - 1, index + 1, posI, posJ - 1);
+		}
+
+		if (checkIfCanGoThere(targetNumber, leftLength, index, path, posI,
+				posJ + 1)) {
+
+			findingPath(sourceNumber, targetNumber, paths, path,
+					leftLength - 1, index + 1, posI, posJ + 1);
+		}
 	}
 
 	// Fukcja sprawdzająca czy można przejsć do danego pola
@@ -173,14 +331,72 @@ public class LinkAPixArea {
 		Field field = area[posI][posJ];
 
 		if (field.val == SELECTED
-				|| field.number != targetNumber
 				|| checkIfBelognsToPath(path, index, field)
 				|| checkIfBlockSomeNumbers(path, index, targetNumber, posI,
 						posJ)) {
 			return false;
 		}
 
-		return false;
+		if (field.number != null && field.number != targetNumber) {
+			return false;
+		}
+
+		// Jeżeli pozstała tylko jedek krok do narysowania ścieżki a następne
+		// pole nie jest docelowym numerem zwróć fałsz
+		if (leftLength == 1 && field.number != targetNumber) {
+			return false;
+		}
+		// Jeżeli pozostało więcej niż jedek krok do wyznaczenia sieżki a
+		// następne pole jest docelową liczbą zwróc fałsz
+		if (leftLength > 1 && field.number == targetNumber) {
+			return false;
+		}
+
+		// Wyznaczanie jaka jest najkrótsza długość do docelowej liczby
+		int minLeftLength = 0;
+
+		if (posI > targetNumber.i) {
+			minLeftLength = minLeftLength + (posI - targetNumber.i);
+		}
+
+		if (posI < targetNumber.i) {
+			minLeftLength = minLeftLength + (targetNumber.i - posI);
+		}
+		if (posI == targetNumber.i) {
+			if (posJ > targetNumber.j && posJ > path[index].j) {
+				minLeftLength += 2;
+			}
+
+			if (posJ < targetNumber.j && posJ < path[index].j) {
+				minLeftLength += 2;
+			}
+		}
+
+		if (posJ > targetNumber.j) {
+			minLeftLength = minLeftLength + (posJ - targetNumber.j);
+		}
+
+		if (posJ < targetNumber.j) {
+			minLeftLength = minLeftLength + (targetNumber.j - posJ);
+		}
+
+		if (posJ == targetNumber.j) {
+			if (posI > targetNumber.i && posI > path[index].i) {
+				minLeftLength += 2;
+			}
+
+			if (posI < targetNumber.i && posI < path[index].i) {
+				minLeftLength += 2;
+			}
+		}
+
+		// Jeżeli minimalna długość jaką można wyznaczyć jest większa od
+		// pozostałych kroków do wyznaczenia zwróć fałsz
+		if (leftLength - 1 < minLeftLength) {
+			return false;
+		}
+
+		return true;
 	}
 
 	// Metoda sprawdzająca czy liczby występujące obok pola są blokowane,
@@ -189,12 +405,16 @@ public class LinkAPixArea {
 	private boolean checkIfBlockSomeNumbers(Field[] path, int index,
 			LaNumber targetNumber, int posI, int posJ) {
 
+		Field field = area[posI][posJ];
+
+		path[index + 1] = field;
+
 		if (posI - 1 >= 0 && area[posI - 1][posJ].number != null
 				&& area[posI - 1][posJ].val != SELECTED
 				&& area[posI - 1][posJ] != path[0]
 				&& area[posI - 1][posJ].number != targetNumber) {
 
-			if (checkIfNumberIsBlock(area[posI - 1][posJ], path, index)) {
+			if (checkIfNumberIsBlock(area[posI - 1][posJ], path, index + 1)) {
 				return true;
 			}
 		}
@@ -204,7 +424,7 @@ public class LinkAPixArea {
 				&& area[posI + 1][posJ] != path[0]
 				&& area[posI + 1][posJ].number != targetNumber) {
 
-			if (checkIfNumberIsBlock(area[posI + 1][posJ], path, index)) {
+			if (checkIfNumberIsBlock(area[posI + 1][posJ], path, index + 1)) {
 				return true;
 			}
 		}
@@ -214,7 +434,7 @@ public class LinkAPixArea {
 				&& area[posI][posJ - 1] != path[0]
 				&& area[posI][posJ - 1].number != targetNumber) {
 
-			if (checkIfNumberIsBlock(area[posI][posJ - 1], path, index)) {
+			if (checkIfNumberIsBlock(area[posI][posJ - 1], path, index + 1)) {
 				return true;
 			}
 		}
@@ -224,7 +444,7 @@ public class LinkAPixArea {
 				&& area[posI][posJ + 1] != path[0]
 				&& area[posI][posJ + 1].number != targetNumber) {
 
-			if (checkIfNumberIsBlock(area[posI][posJ + 1], path, index)) {
+			if (checkIfNumberIsBlock(area[posI][posJ + 1], path, index + 1)) {
 				return true;
 			}
 		}
@@ -282,7 +502,7 @@ public class LinkAPixArea {
 	// Metoda sprawdzająca czy pole należy do aktualnie wyznaczonej ścieżki
 	private boolean checkIfBelognsToPath(Field[] path, int index, Field field) {
 
-		for (int i = 0; i < index; i++) {
+		for (int i = 0; i <= index; i++) {
 			if (path[i] == field)
 				return true;
 		}
