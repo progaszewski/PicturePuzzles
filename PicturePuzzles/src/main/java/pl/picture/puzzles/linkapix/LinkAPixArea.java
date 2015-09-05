@@ -24,11 +24,15 @@ public class LinkAPixArea {
 	private boolean isAdvance = false;
 	private boolean onlyOnePath = false;
 
+	private Map<Field, Integer> commonFields;
+
 	public LinkAPixArea(File f) {
 		init(f);
 	}
 
 	private JPanel debugPanel;
+	private boolean isDetermitingCommonFields;
+	private boolean spr = false;
 
 	private void init(File f) {
 
@@ -250,6 +254,17 @@ public class LinkAPixArea {
 				if (!change && !this.isAdvance) {
 					change = this.isAdvance = true;
 				}
+
+				if (!change && this.isAdvance) {
+					this.isDetermitingCommonFields = true;
+					change = determinateCommonField();
+
+					this.isDetermitingCommonFields = false;
+					this.spr = true;
+					// this.debugPanel.repaint();
+					// JOptionPane.showMessageDialog(null, 0, "Info",
+					// JOptionPane.INFORMATION_MESSAGE);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -257,16 +272,61 @@ public class LinkAPixArea {
 		}
 
 		// Debug
-		for (Byte number : numbers.keySet()) {
-			List<LaNumber> numbersByKey = numbers.get(number);
-			for (LaNumber laNumber : numbersByKey) {
-				drugieLiczby(laNumber);
-			}
-
-		}
+		// for (Byte number : numbers.keySet()) {
+		// List<LaNumber> numbersByKey = numbers.get(number);
+		// for (LaNumber laNumber : numbersByKey) {
+		// drugieLiczby(laNumber);
+		// }
+		//
+		// }
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
 		return false;
+	}
+
+	private boolean determinateCommonField() {
+
+		boolean change = false;
+		for (Byte number : numbers.keySet()) {
+
+			List<LaNumber> numberByKey = numbers.get(number);
+
+			for (LaNumber laNumber : numberByKey) {
+
+				if (laNumber.secondNumber.size() > 1 || laNumber.haveCommons) {
+					laNumber.haveCommons = false;
+					continue;
+				}
+
+				// this.isAdvance = false;
+
+				this.commonFields = new HashMap<Field, Integer>();
+
+				findPathToNumber(laNumber, laNumber.secondNumber.get(0));
+
+				if (commonFields != null && commonFields.size() > 0) {
+
+					for (Field commonField : commonFields.keySet()) {
+						// if (commonField.number == laNumber
+						// || (commonField.number != null &&
+						// commonField.number.secondNumber
+						// .get(0) == laNumber))
+						// continue;
+
+						commonField.belongsToNumber = laNumber;
+						commonField.val = SELECTED;
+						commonField.belongsToNumber_2 = laNumber.secondNumber
+								.get(0);
+
+					}
+					change = true;
+				}
+
+				laNumber.secondNumber.get(0).haveCommons = true;
+			}
+		}
+
+		return change;
 	}
 
 	// Rysowanie wyznaczonej ścieżki
@@ -277,6 +337,7 @@ public class LinkAPixArea {
 
 			field.belongsToNumber = laNumber;
 			field.val = SELECTED;
+			field.belongsToNumber_2 = laNumber.secondNumber.get(0);
 
 			if (i > 0) {
 				field.prev = fields[i - 1];
@@ -308,14 +369,15 @@ public class LinkAPixArea {
 			int posI, int posJ) {
 
 		// Jeżeli znaleziono więcej niż jedną ścieżkę zakończ poszukiwania
-		if (paths.size() > 1 || (this.onlyOnePath && paths.size() == 1))
+		if (paths.size() > 1
+				|| (this.onlyOnePath && paths.size() == 1)
+				|| (this.isDetermitingCommonFields && this.commonFields == null))
 			return;
 
 		Field field = area[posI][posJ];
 		path[index] = field;
 
-		// if (sourceNumber.i == 16 && sourceNumber.j == 6 && this.onlyOnePath)
-		// {
+		// if (this.isDetermitingCommonFields) {
 		// selectPath(path, index);
 		// this.debugPanel.repaint();
 		// JOptionPane.showMessageDialog(null, 0, "Info",
@@ -324,7 +386,12 @@ public class LinkAPixArea {
 		// }
 
 		if (leftLength == 0 && field.number == targetNumber) {
-			paths.add(path.clone());
+
+			if (this.isDetermitingCommonFields) {
+				selectCommonFields(path);
+			} else {
+				paths.add(path.clone());
+			}
 			return;
 		}
 
@@ -357,6 +424,36 @@ public class LinkAPixArea {
 		}
 	}
 
+	private void selectCommonFields(Field[] fields) {
+
+		if (this.commonFields.size() == 0) {
+			for (int i = 1; i < fields.length - 1; i++) {
+				Field field = fields[i];
+				commonFields.put(field, 1);
+			}
+			return;
+		}
+
+		Map<Field, Integer> temp = new HashMap<Field, Integer>();
+
+		for (int i = 1; i < fields.length - 1; i++) {
+			Field field = fields[i];
+			Integer j = this.commonFields.get(field);
+
+			if (j != null) {
+				temp.put(field, 1);
+			}
+		}
+
+		if (temp.size() == 0) {
+			this.commonFields = null;
+			return;
+		}
+		// this.commonFields.clear();
+		this.commonFields = temp;
+
+	}
+
 	// Fukcja sprawdzająca czy można przejsć do danego pola
 	private boolean checkIfCanGoThere(LaNumber targetNumber, int leftLength,
 			int index, Field[] path, int posI, int posJ) {
@@ -370,7 +467,8 @@ public class LinkAPixArea {
 
 		Field field = area[posI][posJ];
 
-		if (field.val == SELECTED || checkIfBelognsToPath(path, index, field)) {
+		if ((field.val == SELECTED && (field.belongsToNumber != path[0].number && field.belongsToNumber_2 != path[0].number))
+				|| checkIfBelognsToPath(path, index, field)) {
 
 			// System.out.println("2");
 			return false;
@@ -510,9 +608,18 @@ public class LinkAPixArea {
 			// zaznaczenie drugiel liczby poto aby nie brać jej pod uwagę
 			// podczas sprawdzania czy inne liczbą są blokowane
 			area[targetNumber.i][targetNumber.j].val = SELECTED;
+			boolean turnOn = false;
+			if (this.isDetermitingCommonFields) {
+				this.isDetermitingCommonFields = false;
+				turnOn = true;
+			}
 
 			boolean isBlock = checkIfNumbersAreBlockAdvance(path[0].number,
 					targetNumber);
+			if (turnOn) {
+				this.isDetermitingCommonFields = true;
+			}
+
 			area[targetNumber.i][targetNumber.j].val = ABSENCE;
 			unselectPath(path, index + 1);
 
@@ -643,7 +750,7 @@ public class LinkAPixArea {
 		}
 
 		if (field.i - 1 < 0
-				|| area[field.i - 1][field.j].val == SELECTED
+				|| (area[field.i - 1][field.j].val == SELECTED && (area[field.i - 1][field.j].belongsToNumber != field.number && area[field.i - 1][field.j].belongsToNumber_2 != field.number))
 				|| area[field.i - 1][field.j].number != null
 				|| checkIfBelognsToPath(path, index, area[field.i - 1][field.j])) {
 
@@ -651,7 +758,7 @@ public class LinkAPixArea {
 		}
 
 		if (field.i + 1 >= this.y
-				|| area[field.i + 1][field.j].val == SELECTED
+				|| (area[field.i + 1][field.j].val == SELECTED && (area[field.i + 1][field.j].belongsToNumber != field.number && area[field.i + 1][field.j].belongsToNumber_2 != field.number))
 				|| area[field.i + 1][field.j].number != null
 				|| checkIfBelognsToPath(path, index, area[field.i + 1][field.j])) {
 
@@ -659,7 +766,7 @@ public class LinkAPixArea {
 		}
 
 		if (field.j - 1 < 0
-				|| area[field.i][field.j - 1].val == SELECTED
+				|| (area[field.i][field.j - 1].val == SELECTED && (area[field.i][field.j - 1].belongsToNumber != field.number && area[field.i][field.j - 1].belongsToNumber_2 != field.number))
 				|| area[field.i][field.j - 1].number != null
 				|| checkIfBelognsToPath(path, index, area[field.i][field.j - 1])) {
 
@@ -667,7 +774,7 @@ public class LinkAPixArea {
 		}
 
 		if (field.j + 1 >= this.x
-				|| area[field.i][field.j + 1].val == SELECTED
+				|| (area[field.i][field.j + 1].val == SELECTED && (area[field.i][field.j + 1].belongsToNumber != field.number && area[field.i][field.j + 1].belongsToNumber_2 != field.number))
 				|| area[field.i][field.j + 1].number != null
 				|| checkIfBelognsToPath(path, index, area[field.i][field.j + 1])) {
 
@@ -689,7 +796,8 @@ public class LinkAPixArea {
 
 	private void unselectPath(Field[] path, int index) {
 		for (int i = 0; i <= index; i++) {
-			path[i].val = ABSENCE;
+			if (path[i].belongsToNumber == null)
+				path[i].val = ABSENCE;
 		}
 	}
 
@@ -785,6 +893,9 @@ public class LinkAPixArea {
 
 		public Field next, prev;
 		public LaNumber belongsToNumber;
+		public LaNumber belongsToNumber_2;
+
+		// public boolean isCommon = false;
 
 		public Field(int i, int j) {
 			this.i = i;
@@ -855,6 +966,8 @@ public class LinkAPixArea {
 
 		// Ścieżka do drugiej liczby
 		// public LinkedList<Field> path = new LinkedList<Field>();
+
+		public boolean haveCommons = false;
 
 		public LaNumber(byte value, int i, int j) {
 			this.value = value;
