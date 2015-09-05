@@ -10,6 +10,8 @@ import java.util.Scanner;
 
 import javax.swing.JPanel;
 
+import pl.picture.puzzles.common.PuzzleUtilities;
+
 public class LinkAPixArea {
 
 	public static final byte ABSENCE = -1; // Nieoznaczone pole
@@ -19,9 +21,14 @@ public class LinkAPixArea {
 	public Map<Byte, ArrayList<LaNumber>> numbers;
 	public int x = 0, y = 0; // Wymiary lamiglowki
 
+	private boolean isAdvance = false;
+	private boolean onlyOnePath = false;
+
 	public LinkAPixArea(File f) {
 		init(f);
 	}
+
+	private JPanel debugPanel;
 
 	private void init(File f) {
 
@@ -74,13 +81,19 @@ public class LinkAPixArea {
 
 	public boolean solvePuzzle(JPanel panel) {
 
+		this.debugPanel = panel;
+		long startCountTimeElapsed = System.currentTimeMillis();
 		// numbers.keySet().toArray();
 		boolean change = true;
+		this.isAdvance = false;
 
 		// pobranie listy liczb o wartosci 1
 		List<LaNumber> oneNumbers = numbers.get((byte) 1);
-		for (LaNumber laNumber : oneNumbers) {
-			area[laNumber.i][laNumber.j].val = SELECTED;
+
+		if (oneNumbers != null && oneNumbers.size() > 0) {
+			for (LaNumber laNumber : oneNumbers) {
+				area[laNumber.i][laNumber.j].val = SELECTED;
+			}
 		}
 
 		// Usinięcie listy liczb o wartości 1
@@ -147,6 +160,11 @@ public class LinkAPixArea {
 										numbersToRemove.add(secNumber);
 										continue;
 									}
+									// boolean turnOnAdvance = false;
+									// if (this.isAdvance) {
+									// this.isAdvance = false;
+									// turnOnAdvance = true;
+									// }
 
 									List<Field[]> paths = findPathToNumber(
 											laNumber, secNumber);
@@ -154,6 +172,10 @@ public class LinkAPixArea {
 									if (paths.size() == 0) {
 										numbersToRemove.add(secNumber);
 									}
+
+									// if (turnOnAdvance) {
+									// this.isAdvance = true;
+									// }
 								}
 
 								if (numbersToRemove.size() > 0) {
@@ -222,6 +244,12 @@ public class LinkAPixArea {
 						numbers.remove(num);
 					}
 				}
+
+				// Jeżeli nic nie udalo sie zmienic i tryb zaawansowany jest
+				// wyłączony włączy tryb zaawansowany
+				if (!change && !this.isAdvance) {
+					change = this.isAdvance = true;
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -236,7 +264,8 @@ public class LinkAPixArea {
 			}
 
 		}
-
+		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
+				- startCountTimeElapsed);
 		return false;
 	}
 
@@ -279,11 +308,20 @@ public class LinkAPixArea {
 			int posI, int posJ) {
 
 		// Jeżeli znaleziono więcej niż jedną ścieżkę zakończ poszukiwania
-		if (paths.size() > 1)
+		if (paths.size() > 1 || (this.onlyOnePath && paths.size() == 1))
 			return;
 
 		Field field = area[posI][posJ];
 		path[index] = field;
+
+		// if (sourceNumber.i == 16 && sourceNumber.j == 6 && this.onlyOnePath)
+		// {
+		// selectPath(path, index);
+		// this.debugPanel.repaint();
+		// JOptionPane.showMessageDialog(null, 0, "Info",
+		// JOptionPane.INFORMATION_MESSAGE);
+		// unselectPath(path, index);
+		// }
 
 		if (leftLength == 0 && field.number == targetNumber) {
 			paths.add(path.clone());
@@ -325,30 +363,34 @@ public class LinkAPixArea {
 
 		// Jeżeli pozycja wybiega poza obszar planszy zwróc fałsz
 		if (posI < 0 || posI >= this.y || posJ < 0 || posJ >= this.x) {
+
+			// System.out.println("1");
 			return false;
 		}
 
 		Field field = area[posI][posJ];
 
-		if (field.val == SELECTED
-				|| checkIfBelognsToPath(path, index, field)
-				|| checkIfBlockSomeNumbers(path, index, targetNumber, posI,
-						posJ)) {
+		if (field.val == SELECTED || checkIfBelognsToPath(path, index, field)) {
+
+			// System.out.println("2");
 			return false;
 		}
 
 		if (field.number != null && field.number != targetNumber) {
+			// System.out.println("3");
 			return false;
 		}
 
 		// Jeżeli pozstała tylko jedek krok do narysowania ścieżki a następne
 		// pole nie jest docelowym numerem zwróć fałsz
 		if (leftLength == 1 && field.number != targetNumber) {
+			// System.out.println("4");
 			return false;
 		}
 		// Jeżeli pozostało więcej niż jedek krok do wyznaczenia sieżki a
 		// następne pole jest docelową liczbą zwróc fałsz
 		if (leftLength > 1 && field.number == targetNumber) {
+			// System.out.println("5");
 			return false;
 		}
 
@@ -393,6 +435,11 @@ public class LinkAPixArea {
 		// Jeżeli minimalna długość jaką można wyznaczyć jest większa od
 		// pozostałych kroków do wyznaczenia zwróć fałsz
 		if (leftLength - 1 < minLeftLength) {
+			// System.out.println("6");
+			return false;
+		}
+
+		if (checkIfBlockSomeNumbers(path, index, targetNumber, posI, posJ)) {
 			return false;
 		}
 
@@ -415,6 +462,12 @@ public class LinkAPixArea {
 				&& area[posI - 1][posJ].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI - 1][posJ], path, index + 1)) {
+				// System.out.println(area[posI - 1][posJ].number.value + " ["
+				// + area[posI - 1][posJ].number.i + ", "
+				// + area[posI - 1][posJ].number.j + "] IS BLOKC!");
+				//
+				// System.out.println(targetNumber.value + " [" + targetNumber.i
+				// + ", " + targetNumber.j + "] TARGET");
 				return true;
 			}
 		}
@@ -425,6 +478,7 @@ public class LinkAPixArea {
 				&& area[posI + 1][posJ].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI + 1][posJ], path, index + 1)) {
+				// System.out.println("2_2");
 				return true;
 			}
 		}
@@ -435,6 +489,7 @@ public class LinkAPixArea {
 				&& area[posI][posJ - 1].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI][posJ - 1], path, index + 1)) {
+				// System.out.println("2_3");
 				return true;
 			}
 		}
@@ -445,11 +500,137 @@ public class LinkAPixArea {
 				&& area[posI][posJ + 1].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI][posJ + 1], path, index + 1)) {
+				// System.out.println("2_4");
 				return true;
 			}
 		}
 
+		if (isAdvance) {
+			selectPath(path, index + 1);
+			// zaznaczenie drugiel liczby poto aby nie brać jej pod uwagę
+			// podczas sprawdzania czy inne liczbą są blokowane
+			area[targetNumber.i][targetNumber.j].val = SELECTED;
+
+			boolean isBlock = checkIfNumbersAreBlockAdvance(path[0].number,
+					targetNumber);
+			area[targetNumber.i][targetNumber.j].val = ABSENCE;
+			unselectPath(path, index + 1);
+
+			return isBlock;
+		}
+
 		return false;
+	}
+
+	// Metoda sprawdzająca czy liczby są blokowane wersja zaawansowana
+	private boolean checkIfNumbersAreBlockAdvance(LaNumber sourceNumber,
+			LaNumber targetNumber) {
+
+		// System.out.println(" --- START ---");
+		if (sourceNumber.numbersInScope == null) {
+			sourceNumber.numbersInScope = new ArrayList<LaNumber>();
+			searchNumbersInScope(sourceNumber);
+		}
+
+		// na czas sprawdzania czy jakaś liczba jest blokowana wyłączamy tryb
+		// zaawansowany po to aby nie zapętlić algorytmu
+		this.isAdvance = false;
+
+		for (LaNumber number : sourceNumber.numbersInScope) {
+
+			if (number == targetNumber
+					|| area[number.i][number.j].val == SELECTED)
+				continue;
+
+			boolean isOk = false;
+			for (LaNumber secNumber : number.secondNumber) {
+				this.onlyOnePath = true;
+				List<Field[]> paths = findPathToNumber(number, secNumber);
+				this.onlyOnePath = false;
+				if (paths.size() > 0) {
+					// System.out.println(number.value + " [" + number.i + ", "
+					// + number.j + "] IS ok!");
+					isOk = true;
+					break;
+				}
+			}
+
+			// Jeżeli liczba jest blokowana to zwróc true;
+			if (!isOk) {
+
+				// System.out.println(number.value + " [" + number.i + ", "
+				// + number.j + "] not ok!");
+				// System.out.println(" --- END ---");
+
+				// if (sourceNumber.i == 20 && sourceNumber.j == 10) {
+				//
+				// this.debugPanel.repaint();
+				// JOptionPane.showMessageDialog(null, 0, "Info",
+				// JOptionPane.INFORMATION_MESSAGE);
+				// }
+				this.isAdvance = true;
+				return true;
+			}
+		}
+		// System.out.println(" --- END ---");
+
+		// if (sourceNumber.i == 20 && sourceNumber.j == 10) {
+		//
+		// this.debugPanel.repaint();
+		// JOptionPane.showMessageDialog(null, 0, "Info",
+		// JOptionPane.INFORMATION_MESSAGE);
+		// }
+		this.isAdvance = true;
+		return false;
+	}
+
+	private void searchNumbersInScope(LaNumber laNumber) {
+
+		int diff = 0;
+		int startI = laNumber.i - laNumber.value + 1;
+
+		// Sprawdzamy czy zakres w górę wybiega poza planszę
+		// jeżeli tak to ustaw wartość diff o długość tej różnicy
+		if (startI < 0) {
+			diff = laNumber.value - 1 - laNumber.i;
+			startI = 0;
+		}
+
+		int k = 0;
+		int l = 0;
+		for (int i = startI; i <= laNumber.i + (laNumber.value - 1)
+				&& i < this.y; i++) {
+
+			// Jeżęli i jest mniejsze od pozycji "i" sprawdzanej liczby to
+			// zwiększaj "k"
+			if (i <= laNumber.i) {
+				k = l + diff;
+			} else {
+				k = 2 * laNumber.value - 2 - (l + diff);
+			}
+
+			l++;
+			int startJ = laNumber.j - k;
+
+			if (startJ < 0) {
+				startJ = 0;
+			}
+
+			for (int j = startJ; j <= laNumber.j + k && j < this.x; j++) {
+
+				Field field = this.area[i][j];
+
+				if (field.number != null && field.val != SELECTED
+						&& field.number != laNumber) {
+
+					if (laNumber.numbersInScope == null) {
+						laNumber.numbersInScope = new ArrayList<LaNumber>();
+					}
+
+					laNumber.numbersInScope.add(field.number);
+				}
+			}
+		}
 	}
 
 	// Sprawdza czy liczba jest blokowana
@@ -497,6 +678,19 @@ public class LinkAPixArea {
 			return true;
 
 		return false;
+	}
+
+	private void selectPath(Field[] path, int index) {
+
+		for (int i = 0; i <= index; i++) {
+			path[i].val = SELECTED;
+		}
+	}
+
+	private void unselectPath(Field[] path, int index) {
+		for (int i = 0; i <= index; i++) {
+			path[i].val = ABSENCE;
+		}
 	}
 
 	// Metoda sprawdzająca czy pole należy do aktualnie wyznaczonej ścieżki
@@ -655,6 +849,9 @@ public class LinkAPixArea {
 
 		public List<LaNumber> secondNumber; // druga liczba z która jest
 											// połączona
+
+		public List<LaNumber> numbersInScope; // lista liczb należących do
+												// zasięgu liczby
 
 		// Ścieżka do drugiej liczby
 		// public LinkedList<Field> path = new LinkedList<Field>();
