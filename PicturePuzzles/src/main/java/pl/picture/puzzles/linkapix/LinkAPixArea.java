@@ -272,13 +272,13 @@ public class LinkAPixArea {
 		}
 
 		// Debug
-		// for (Byte number : numbers.keySet()) {
-		// List<LaNumber> numbersByKey = numbers.get(number);
-		// for (LaNumber laNumber : numbersByKey) {
-		// drugieLiczby(laNumber);
-		// }
-		//
-		// }
+		for (Byte number : numbers.keySet()) {
+			List<LaNumber> numbersByKey = numbers.get(number);
+			for (LaNumber laNumber : numbersByKey) {
+				drugieLiczby(laNumber);
+			}
+
+		}
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
 		return false;
@@ -877,6 +877,11 @@ public class LinkAPixArea {
 	private void drugieLiczby(LaNumber laNumber) {
 		System.out.println(laNumber.value + " [" + laNumber.i + ", "
 				+ laNumber.j + "] secondNumbers:");
+
+		if (laNumber.secondNumber == null) {
+			System.out.println("NULL");
+			return;
+		}
 		for (LaNumber secNumber : laNumber.secondNumber) {
 			System.out.print(secNumber.value + " [" + secNumber.i + ", "
 					+ secNumber.j + "], ");
