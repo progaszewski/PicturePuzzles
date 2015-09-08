@@ -68,13 +68,13 @@ public class LinkAPixArea {
 				LaNumber laNumber = new LaNumber(val, i, j);
 				area[i][j].number = laNumber;
 
-				ArrayList<LaNumber> listNumber = numbers.get(val);
-				if (listNumber == null) {
-					listNumber = new ArrayList<LaNumber>();
-					numbers.put(val, listNumber);
-				}
-
-				listNumber.add(laNumber);
+				// ArrayList<LaNumber> listNumber = numbers.get(val);
+				// if (listNumber == null) {
+				// listNumber = new ArrayList<LaNumber>();
+				// numbers.put(val, listNumber);
+				// }
+				//
+				// listNumber.add(laNumber);
 			}
 			s.close();
 
@@ -86,6 +86,8 @@ public class LinkAPixArea {
 	public boolean solvePuzzle(JPanel panel) {
 
 		this.debugPanel = panel;
+		clearArea();
+
 		long startCountTimeElapsed = System.currentTimeMillis();
 		// numbers.keySet().toArray();
 		boolean change = true;
@@ -229,13 +231,15 @@ public class LinkAPixArea {
 									change = change2 = true;
 								}
 							}
-							// DEBUG
-							// drugieLiczby(laNumber);
 						}
 
 						if (numbersByKeyToRemove.size() > 0) {
 							numbersByKey.removeAll(numbersByKeyToRemove);
 						}
+
+						// this.debugPanel.repaint();
+						// JOptionPane.showMessageDialog(null, number, "Info",
+						// JOptionPane.INFORMATION_MESSAGE);
 					}
 
 					if (numbersByKey.size() == 0) {
@@ -271,17 +275,9 @@ public class LinkAPixArea {
 			panel.repaint();
 		}
 
-		// Debug
-		for (Byte number : numbers.keySet()) {
-			List<LaNumber> numbersByKey = numbers.get(number);
-			for (LaNumber laNumber : numbersByKey) {
-				drugieLiczby(laNumber);
-			}
-
-		}
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
-		return false;
+		return checkSolve();
 	}
 
 	private boolean determinateCommonField() {
@@ -312,14 +308,16 @@ public class LinkAPixArea {
 						// commonField.number.secondNumber
 						// .get(0) == laNumber))
 						// continue;
+						if (commonField.val == SELECTED)
+							continue;
 
 						commonField.belongsToNumber = laNumber;
 						commonField.val = SELECTED;
 						commonField.belongsToNumber_2 = laNumber.secondNumber
 								.get(0);
-
+						change = true;
 					}
-					change = true;
+
 				}
 
 				laNumber.secondNumber.get(0).haveCommons = true;
@@ -870,23 +868,36 @@ public class LinkAPixArea {
 	}
 
 	public boolean checkSolve() {
-		return false;
-	}
+		for (int i = 0; i < this.y; i++) {
+			for (int j = 0; j < this.x; j++) {
+				Field field = this.area[i][j];
+				if (field.number == null)
+					continue;
 
-	// DEBUG
-	private void drugieLiczby(LaNumber laNumber) {
-		System.out.println(laNumber.value + " [" + laNumber.i + ", "
-				+ laNumber.j + "] secondNumbers:");
+				if (field.val != SELECTED)
+					return false;
 
-		if (laNumber.secondNumber == null) {
-			System.out.println("NULL");
-			return;
+				if (field.number.value == 1) {
+					continue;
+				}
+
+				if (field.prev == null && field.next == null)
+					return false;
+
+				int length = 0;
+				if (field.prev != null) {
+					length = checkPrevFields(field.prev, 1);
+
+				} else {
+					length = checkNextFields(field.next, 1);
+				}
+
+				if (length != field.number.value)
+					return false;
+			}
 		}
-		for (LaNumber secNumber : laNumber.secondNumber) {
-			System.out.print(secNumber.value + " [" + secNumber.i + ", "
-					+ secNumber.j + "], ");
-		}
-		System.out.println("\n");
+
+		return true;
 	}
 
 	// Klasa reprezentujaca pole (kratke do zanzaczenia)
@@ -1036,4 +1047,60 @@ public class LinkAPixArea {
 		prev.prev = null;
 	}
 
+	private int checkNextFields(Field next, int length) {
+
+		if (next.val != SELECTED) {
+			return -1;
+		}
+
+		if (next.next != null) {
+			return checkNextFields(next.next, length + 1);
+		} else {
+			return length + 1;
+		}
+	}
+
+	private int checkPrevFields(Field prev, int length) {
+		if (prev.val != SELECTED)
+			return -1;
+
+		if (prev.prev != null) {
+			return checkPrevFields(prev.prev, length + 1);
+		} else {
+			return length + 1;
+		}
+	}
+
+	private void clearArea() {
+		this.numbers = new HashMap<Byte, ArrayList<LaNumber>>();
+
+		for (int i = 0; i < this.y; i++) {
+			for (int j = 0; j < this.x; j++) {
+				Field field = this.area[i][j];
+
+				field.val = ABSENCE;
+				field.belongsToNumber = null;
+				field.belongsToNumber_2 = null;
+				field.prev = null;
+				field.next = null;
+
+				if (field.number != null) {
+					LaNumber laNumber = field.number;
+
+					laNumber.haveCommons = false;
+					laNumber.numbersInScope = null;
+					laNumber.secondNumber = null;
+
+					ArrayList<LaNumber> listNumber = numbers
+							.get(laNumber.value);
+					if (listNumber == null) {
+						listNumber = new ArrayList<LaNumber>();
+						numbers.put(laNumber.value, listNumber);
+					}
+
+					listNumber.add(laNumber);
+				}
+			}
+		}
+	}
 }
