@@ -25,6 +25,8 @@ public class PicAPixArea {
 
 	private boolean change;
 
+	private JPanel panel;
+
 	public PicAPixArea(File f) {
 		init(f);
 	}
@@ -123,6 +125,8 @@ public class PicAPixArea {
 	}
 
 	public boolean solvePuzzle(JPanel panel) {
+
+		this.panel = panel;
 		int k;
 		// Rozpoczęcie odmierzania czasu rozwiazywania lamiglowki
 		long startCountTimeElapsed = System.currentTimeMillis();
@@ -147,7 +151,7 @@ public class PicAPixArea {
 			// Linie pionowe
 
 			k = 0;
-
+			//
 			// panel.repaint();
 			// JOptionPane.showMessageDialog(panel, k, "Info",
 			// JOptionPane.INFORMATION_MESSAGE);
@@ -233,6 +237,24 @@ public class PicAPixArea {
 			listsOfNumbers = this.verticalListsOfNumbers;
 		}
 
+		if (numberList.numbers.size() == 1
+				&& numberList.numbers.get(0).val == 0) {
+
+			for (int j = 0; j < n; j++) {
+				if (isVertical) {
+					this.area[j][i].type = EMPTY;
+				} else {
+					this.area[i][j].type = EMPTY;
+				}
+			}
+
+			numberList.numbers.get(0).enable = false;
+			numberList.otherNumbers = 0;
+			change = true;
+
+			return;
+		}
+
 		// System.out.println(i + ":");
 		int startPosition = 0;
 		for (PaNumber paNumber : numberList.numbers) {
@@ -272,10 +294,12 @@ public class PicAPixArea {
 
 						}
 						// Kolorownie natępnej kratki na "szaro"
-						if (isVertical) {
-							this.area[j][firstNumber.val].type = EMPTY;
-						} else {
-							this.area[firstNumber.val][j].type = EMPTY;
+						if (firstNumber.val < n) {
+							if (isVertical) {
+								this.area[j][firstNumber.val].type = EMPTY;
+							} else {
+								this.area[firstNumber.val][j].type = EMPTY;
+							}
 						}
 
 						setNumberEnableToFalse(numberListPrim.numbers,
@@ -289,7 +313,7 @@ public class PicAPixArea {
 						numberListPrim.otherNumbers--;
 
 						if (numberListPrim.otherNumbers == 0) {
-							selectAbsenceToEmpty(isVertical, i);
+							selectAbsenceToEmpty(!isVertical, j);
 						}
 
 					}
@@ -314,10 +338,12 @@ public class PicAPixArea {
 
 						}
 						// Kolorownie natępnej kratki na "szaro"
-						if (isVertical) {
-							this.area[j][nPrim - lastNumber.val - 1].type = EMPTY;
-						} else {
-							this.area[nPrim - lastNumber.val - 1][j].type = EMPTY;
+						if (nPrim - lastNumber.val - 1 >= 0) {
+							if (isVertical) {
+								this.area[j][nPrim - lastNumber.val - 1].type = EMPTY;
+							} else {
+								this.area[nPrim - lastNumber.val - 1][j].type = EMPTY;
+							}
 						}
 
 						setNumberEnableToFalse(numberListPrim.numbers,
@@ -332,7 +358,7 @@ public class PicAPixArea {
 						lastNumber.scope[1] = nPrim - 1;
 						numberListPrim.otherNumbers--;
 						if (numberListPrim.otherNumbers == 0) {
-							selectAbsenceToEmpty(isVertical, i);
+							selectAbsenceToEmpty(!isVertical, j);
 						}
 					}
 				}
@@ -354,6 +380,10 @@ public class PicAPixArea {
 			startPosition += paNumber.val + 1;
 		}
 		// System.out.println("\n");
+
+		// panel.repaint();
+		// JOptionPane.showMessageDialog(null, i, "Info",
+		// JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void selectAbsenceToEmpty(boolean isVertical, int i) {
