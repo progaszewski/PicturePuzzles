@@ -68,13 +68,6 @@ public class LinkAPixArea {
 				LaNumber laNumber = new LaNumber(val, i, j);
 				area[i][j].number = laNumber;
 
-				// ArrayList<LaNumber> listNumber = numbers.get(val);
-				// if (listNumber == null) {
-				// listNumber = new ArrayList<LaNumber>();
-				// numbers.put(val, listNumber);
-				// }
-				//
-				// listNumber.add(laNumber);
 			}
 			s.close();
 
@@ -122,8 +115,6 @@ public class LinkAPixArea {
 
 						List<LaNumber> numbersByKeyToRemove = new ArrayList<LaNumber>();
 						for (LaNumber laNumber : numbersByKey) {
-							// System.out.println(laNumber.value + " ["
-							// + laNumber.i + ", " + laNumber.j + "]");
 
 							// Jeżeli pole do którego należy liczba jest
 							// pokolorowane to
@@ -134,8 +125,8 @@ public class LinkAPixArea {
 								continue;
 							}
 
-							if (laNumber.secondNumber == null) {
-								searchSecondNumber(laNumber);
+							if (laNumber.secondNumbers == null) {
+								searchSecondNumbers(laNumber);
 
 								// jeżeli znaleziono tylko jedną "drugą liczbę"
 								// to
@@ -144,21 +135,21 @@ public class LinkAPixArea {
 								// czyli
 								// wskaż tej drugiej liczbe, liczbę aktualnie
 								// iterowaną
-								if (laNumber.secondNumber.size() == 1) {
-									LaNumber secondNumber = laNumber.secondNumber
+								if (laNumber.secondNumbers.size() == 1) {
+									LaNumber secondNumber = laNumber.secondNumbers
 											.get(0);
 
-									secondNumber.secondNumber = new ArrayList<LaNumber>();
-									secondNumber.secondNumber.add(laNumber);
+									secondNumber.secondNumbers = new ArrayList<LaNumber>();
+									secondNumber.secondNumbers.add(laNumber);
 								}
 
 								change = change2 = true;
 							}
 							// sprawdź czy aby napewno
 							// można dojsć do wszystkich znalezionych liczb
-							if (laNumber.secondNumber.size() > 1) {
+							if (laNumber.secondNumbers.size() > 1) {
 								List<LaNumber> numbersToRemove = new ArrayList<LaNumber>();
-								for (LaNumber secNumber : laNumber.secondNumber) {
+								for (LaNumber secNumber : laNumber.secondNumbers) {
 
 									// Sprawdzanie czy druga liczba jest już
 									// oznaczona
@@ -166,26 +157,18 @@ public class LinkAPixArea {
 										numbersToRemove.add(secNumber);
 										continue;
 									}
-									// boolean turnOnAdvance = false;
-									// if (this.isAdvance) {
-									// this.isAdvance = false;
-									// turnOnAdvance = true;
-									// }
-
-									List<Field[]> paths = findPathToNumber(
+									this.onlyOnePath = true;
+									List<Field[]> paths = findPathsToNumber(
 											laNumber, secNumber);
-
+									this.onlyOnePath = false;
 									if (paths.size() == 0) {
 										numbersToRemove.add(secNumber);
 									}
 
-									// if (turnOnAdvance) {
-									// this.isAdvance = true;
-									// }
 								}
 
 								if (numbersToRemove.size() > 0) {
-									laNumber.secondNumber
+									laNumber.secondNumbers
 											.removeAll(numbersToRemove);
 
 									change = change2 = true;
@@ -195,12 +178,12 @@ public class LinkAPixArea {
 								// tylko
 								// jedna druga liczba to połącz te liczby
 								// relacją
-								if (laNumber.secondNumber.size() == 1) {
-									LaNumber secondNumber = laNumber.secondNumber
+								if (laNumber.secondNumbers.size() == 1) {
+									LaNumber secondNumber = laNumber.secondNumbers
 											.get(0);
 
-									secondNumber.secondNumber = new ArrayList<LaNumber>();
-									secondNumber.secondNumber.add(laNumber);
+									secondNumber.secondNumbers = new ArrayList<LaNumber>();
+									secondNumber.secondNumbers.add(laNumber);
 
 									change = change2 = true;
 								}
@@ -209,24 +192,16 @@ public class LinkAPixArea {
 							// Jeżeli liczba ma tylko jednego brata sprawdź czy
 							// można
 							// wyznaczyć do niego sieżkę
-							if (laNumber.secondNumber.size() == 1) {
-								List<Field[]> paths = findPathToNumber(
-										laNumber, laNumber.secondNumber.get(0));
-
-								// if (laNumber.value > 2) {
-								// System.out.println(laNumber.value + " ["
-								// + laNumber.i + ", " + laNumber.j
-								// + "]");
-								// System.out.println("Size paths: "
-								// + paths.size());
-								// }
+							if (laNumber.secondNumbers.size() == 1) {
+								List<Field[]> paths = findPathsToNumber(
+										laNumber, laNumber.secondNumbers.get(0));
 
 								if (paths.size() == 1) {
 									drawPath(paths.get(0), laNumber);
 
 									numbersByKeyToRemove.add(laNumber);
 									numbersByKeyToRemove
-											.add(laNumber.secondNumber.get(0));
+											.add(laNumber.secondNumbers.get(0));
 
 									change = change2 = true;
 								}
@@ -237,9 +212,6 @@ public class LinkAPixArea {
 							numbersByKey.removeAll(numbersByKeyToRemove);
 						}
 
-						// this.debugPanel.repaint();
-						// JOptionPane.showMessageDialog(null, number, "Info",
-						// JOptionPane.INFORMATION_MESSAGE);
 					}
 
 					if (numbersByKey.size() == 0) {
@@ -261,13 +233,11 @@ public class LinkAPixArea {
 
 				if (!change && this.isAdvance) {
 					this.isDetermitingCommonFields = true;
-					change = determinateCommonField();
+					change = determinateCommonFields();
 
 					this.isDetermitingCommonFields = false;
 					this.spr = true;
-					// this.debugPanel.repaint();
-					// JOptionPane.showMessageDialog(null, 0, "Info",
-					// JOptionPane.INFORMATION_MESSAGE);
+
 				}
 			}
 		} catch (Exception e) {
@@ -280,7 +250,7 @@ public class LinkAPixArea {
 		return checkSolve();
 	}
 
-	private boolean determinateCommonField() {
+	private boolean determinateCommonFields() {
 
 		boolean change = false;
 		for (Byte number : numbers.keySet()) {
@@ -289,38 +259,32 @@ public class LinkAPixArea {
 
 			for (LaNumber laNumber : numberByKey) {
 
-				if (laNumber.secondNumber.size() > 1 || laNumber.haveCommons) {
-					laNumber.haveCommons = false;
+				if (laNumber.secondNumbers.size() > 1 || laNumber.haveCommon) {
+					laNumber.haveCommon = false;
 					continue;
 				}
 
-				// this.isAdvance = false;
-
 				this.commonFields = new HashMap<Field, Integer>();
 
-				findPathToNumber(laNumber, laNumber.secondNumber.get(0));
+				findPathsToNumber(laNumber, laNumber.secondNumbers.get(0));
 
 				if (commonFields != null && commonFields.size() > 0) {
 
 					for (Field commonField : commonFields.keySet()) {
-						// if (commonField.number == laNumber
-						// || (commonField.number != null &&
-						// commonField.number.secondNumber
-						// .get(0) == laNumber))
-						// continue;
+
 						if (commonField.val == SELECTED)
 							continue;
 
-						commonField.belongsToNumber = laNumber;
+						commonField.belongToNumber = laNumber;
 						commonField.val = SELECTED;
-						commonField.belongsToNumber_2 = laNumber.secondNumber
+						commonField.belongToNumberSecond = laNumber.secondNumbers
 								.get(0);
 						change = true;
 					}
 
 				}
 
-				laNumber.secondNumber.get(0).haveCommons = true;
+				laNumber.secondNumbers.get(0).haveCommon = true;
 			}
 		}
 
@@ -333,9 +297,9 @@ public class LinkAPixArea {
 		for (int i = 0; i < fields.length; i++) {
 			Field field = fields[i];
 
-			field.belongsToNumber = laNumber;
+			field.belongToNumber = laNumber;
 			field.val = SELECTED;
-			field.belongsToNumber_2 = laNumber.secondNumber.get(0);
+			field.belongToNumberSecond = laNumber.secondNumbers.get(0);
 
 			if (i > 0) {
 				field.prev = fields[i - 1];
@@ -348,7 +312,7 @@ public class LinkAPixArea {
 	}
 
 	// Metoda szukająca ściężki do danej liczby, zwraca listę ścieżek
-	private List<Field[]> findPathToNumber(LaNumber sourceNumber,
+	private List<Field[]> findPathsToNumber(LaNumber sourceNumber,
 			LaNumber targetNumber) {
 
 		List<Field[]> paths = new ArrayList<Field[]>();
@@ -374,14 +338,6 @@ public class LinkAPixArea {
 
 		Field field = area[posI][posJ];
 		path[index] = field;
-
-		// if (this.isDetermitingCommonFields) {
-		// selectPath(path, index);
-		// this.debugPanel.repaint();
-		// JOptionPane.showMessageDialog(null, 0, "Info",
-		// JOptionPane.INFORMATION_MESSAGE);
-		// unselectPath(path, index);
-		// }
 
 		if (leftLength == 0 && field.number == targetNumber) {
 
@@ -465,7 +421,7 @@ public class LinkAPixArea {
 
 		Field field = area[posI][posJ];
 
-		if ((field.val == SELECTED && (field.belongsToNumber != path[0].number && field.belongsToNumber_2 != path[0].number))
+		if ((field.val == SELECTED && (field.belongToNumber != path[0].number && field.belongToNumberSecond != path[0].number))
 				|| checkIfBelognsToPath(path, index, field)) {
 
 			// System.out.println("2");
@@ -558,12 +514,7 @@ public class LinkAPixArea {
 				&& area[posI - 1][posJ].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI - 1][posJ], path, index + 1)) {
-				// System.out.println(area[posI - 1][posJ].number.value + " ["
-				// + area[posI - 1][posJ].number.i + ", "
-				// + area[posI - 1][posJ].number.j + "] IS BLOKC!");
-				//
-				// System.out.println(targetNumber.value + " [" + targetNumber.i
-				// + ", " + targetNumber.j + "] TARGET");
+
 				return true;
 			}
 		}
@@ -574,7 +525,7 @@ public class LinkAPixArea {
 				&& area[posI + 1][posJ].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI + 1][posJ], path, index + 1)) {
-				// System.out.println("2_2");
+
 				return true;
 			}
 		}
@@ -585,7 +536,7 @@ public class LinkAPixArea {
 				&& area[posI][posJ - 1].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI][posJ - 1], path, index + 1)) {
-				// System.out.println("2_3");
+
 				return true;
 			}
 		}
@@ -596,7 +547,7 @@ public class LinkAPixArea {
 				&& area[posI][posJ + 1].number != targetNumber) {
 
 			if (checkIfNumberIsBlock(area[posI][posJ + 1], path, index + 1)) {
-				// System.out.println("2_4");
+
 				return true;
 			}
 		}
@@ -604,7 +555,7 @@ public class LinkAPixArea {
 		if (isAdvance) {
 			selectPath(path, index + 1);
 			// zaznaczenie drugiel liczby poto aby nie brać jej pod uwagę
-			// podczas sprawdzania czy inne liczbą są blokowane
+			// podczas sprawdzania czy inne liczby są blokowane
 			area[targetNumber.i][targetNumber.j].val = SELECTED;
 			boolean turnOn = false;
 			if (this.isDetermitingCommonFields) {
@@ -648,13 +599,11 @@ public class LinkAPixArea {
 				continue;
 
 			boolean isOk = false;
-			for (LaNumber secNumber : number.secondNumber) {
+			for (LaNumber secNumber : number.secondNumbers) {
 				this.onlyOnePath = true;
-				List<Field[]> paths = findPathToNumber(number, secNumber);
+				List<Field[]> paths = findPathsToNumber(number, secNumber);
 				this.onlyOnePath = false;
 				if (paths.size() > 0) {
-					// System.out.println(number.value + " [" + number.i + ", "
-					// + number.j + "] IS ok!");
 					isOk = true;
 					break;
 				}
@@ -663,28 +612,10 @@ public class LinkAPixArea {
 			// Jeżeli liczba jest blokowana to zwróc true;
 			if (!isOk) {
 
-				// System.out.println(number.value + " [" + number.i + ", "
-				// + number.j + "] not ok!");
-				// System.out.println(" --- END ---");
-
-				// if (sourceNumber.i == 20 && sourceNumber.j == 10) {
-				//
-				// this.debugPanel.repaint();
-				// JOptionPane.showMessageDialog(null, 0, "Info",
-				// JOptionPane.INFORMATION_MESSAGE);
-				// }
 				this.isAdvance = true;
 				return true;
 			}
 		}
-		// System.out.println(" --- END ---");
-
-		// if (sourceNumber.i == 20 && sourceNumber.j == 10) {
-		//
-		// this.debugPanel.repaint();
-		// JOptionPane.showMessageDialog(null, 0, "Info",
-		// JOptionPane.INFORMATION_MESSAGE);
-		// }
 		this.isAdvance = true;
 		return false;
 	}
@@ -743,37 +674,37 @@ public class LinkAPixArea {
 
 		int k = 0;
 
-		if (field.number != null && field.number.value == 2) {
-			return false;
-		}
+		// if (field.number != null && field.number.value == 2) {
+		// return false;
+		// }
 
 		if (field.i - 1 < 0
-				|| (area[field.i - 1][field.j].val == SELECTED && (area[field.i - 1][field.j].belongsToNumber != field.number && area[field.i - 1][field.j].belongsToNumber_2 != field.number))
-				|| area[field.i - 1][field.j].number != null
+				|| (area[field.i - 1][field.j].val == SELECTED && (area[field.i - 1][field.j].belongToNumber != field.number && area[field.i - 1][field.j].belongToNumberSecond != field.number))
+				|| (area[field.i - 1][field.j].number != null && area[field.i - 1][field.j].number.value != field.number.value)
 				|| checkIfBelognsToPath(path, index, area[field.i - 1][field.j])) {
 
 			k++;
 		}
 
 		if (field.i + 1 >= this.y
-				|| (area[field.i + 1][field.j].val == SELECTED && (area[field.i + 1][field.j].belongsToNumber != field.number && area[field.i + 1][field.j].belongsToNumber_2 != field.number))
-				|| area[field.i + 1][field.j].number != null
+				|| (area[field.i + 1][field.j].val == SELECTED && (area[field.i + 1][field.j].belongToNumber != field.number && area[field.i + 1][field.j].belongToNumberSecond != field.number))
+				|| (area[field.i + 1][field.j].number != null && area[field.i + 1][field.j].number.value != field.number.value)
 				|| checkIfBelognsToPath(path, index, area[field.i + 1][field.j])) {
 
 			k++;
 		}
 
 		if (field.j - 1 < 0
-				|| (area[field.i][field.j - 1].val == SELECTED && (area[field.i][field.j - 1].belongsToNumber != field.number && area[field.i][field.j - 1].belongsToNumber_2 != field.number))
-				|| area[field.i][field.j - 1].number != null
+				|| (area[field.i][field.j - 1].val == SELECTED && (area[field.i][field.j - 1].belongToNumber != field.number && area[field.i][field.j - 1].belongToNumberSecond != field.number))
+				|| (area[field.i][field.j - 1].number != null && area[field.i][field.j - 1].number.value != field.number.value)
 				|| checkIfBelognsToPath(path, index, area[field.i][field.j - 1])) {
 
 			k++;
 		}
 
 		if (field.j + 1 >= this.x
-				|| (area[field.i][field.j + 1].val == SELECTED && (area[field.i][field.j + 1].belongsToNumber != field.number && area[field.i][field.j + 1].belongsToNumber_2 != field.number))
-				|| area[field.i][field.j + 1].number != null
+				|| (area[field.i][field.j + 1].val == SELECTED && (area[field.i][field.j + 1].belongToNumber != field.number && area[field.i][field.j + 1].belongToNumberSecond != field.number))
+				|| (area[field.i][field.j + 1].number != null && area[field.i][field.j + 1].number.value != field.number.value)
 				|| checkIfBelognsToPath(path, index, area[field.i][field.j + 1])) {
 
 			k++;
@@ -794,7 +725,7 @@ public class LinkAPixArea {
 
 	private void unselectPath(Field[] path, int index) {
 		for (int i = 0; i <= index; i++) {
-			if (path[i].belongsToNumber == null)
+			if (path[i].belongToNumber == null)
 				path[i].val = ABSENCE;
 		}
 	}
@@ -810,7 +741,7 @@ public class LinkAPixArea {
 	}
 
 	// Szukanie liczby z którymi możę się polączyć dana liczba
-	private void searchSecondNumber(LaNumber laNumber) {
+	private void searchSecondNumbers(LaNumber laNumber) {
 
 		int diff = 0;
 		int startI = laNumber.i - laNumber.value + 1;
@@ -853,14 +784,14 @@ public class LinkAPixArea {
 				if (field.number != null
 						&& field.number != laNumber
 						&& field.number.value == laNumber.value
-						&& (field.number.secondNumber == null || field.number.secondNumber
+						&& (field.number.secondNumbers == null || field.number.secondNumbers
 								.size() > 1)) {
 
-					if (laNumber.secondNumber == null) {
-						laNumber.secondNumber = new ArrayList<LaNumber>();
+					if (laNumber.secondNumbers == null) {
+						laNumber.secondNumbers = new ArrayList<LaNumber>();
 					}
 
-					laNumber.secondNumber.add(field.number);
+					laNumber.secondNumbers.add(field.number);
 				}
 			}
 		}
@@ -908,8 +839,8 @@ public class LinkAPixArea {
 		public int i, j; // pozycja pola
 
 		public Field next, prev;
-		public LaNumber belongsToNumber;
-		public LaNumber belongsToNumber_2;
+		public LaNumber belongToNumber;
+		public LaNumber belongToNumberSecond;
 
 		// public boolean isCommon = false;
 
@@ -927,7 +858,7 @@ public class LinkAPixArea {
 
 		public void setBelongsToNumber(LaNumber selectedNumber) {
 			this.val = SELECTED;
-			this.belongsToNumber = selectedNumber;
+			this.belongToNumber = selectedNumber;
 
 		}
 
@@ -936,7 +867,7 @@ public class LinkAPixArea {
 			String num = " number: ";
 
 			if (number != null) {
-				num = num + number.value + " " + number.secondNumber;
+				num = num + number.value + " " + number.secondNumbers;
 			} else {
 				num = num + "NULL";
 			}
@@ -957,8 +888,8 @@ public class LinkAPixArea {
 
 			String b = " belognsTo: ";
 
-			if (belongsToNumber != null) {
-				b = b + belongsToNumber.value;
+			if (belongToNumber != null) {
+				b = b + belongToNumber.value;
 			} else {
 				b = b + "NULL";
 			}
@@ -974,8 +905,8 @@ public class LinkAPixArea {
 
 		public final int i, j; // pozycja liczny
 
-		public List<LaNumber> secondNumber; // druga liczba z która jest
-											// połączona
+		public List<LaNumber> secondNumbers; // druga liczba z która jest
+												// połączona
 
 		public List<LaNumber> numbersInScope; // lista liczb należących do
 												// zasięgu liczby
@@ -983,7 +914,7 @@ public class LinkAPixArea {
 		// Ścieżka do drugiej liczby
 		// public LinkedList<Field> path = new LinkedList<Field>();
 
-		public boolean haveCommons = false;
+		public boolean haveCommon = false;
 
 		public LaNumber(byte value, int i, int j) {
 			this.value = value;
@@ -995,7 +926,7 @@ public class LinkAPixArea {
 			this.value = number.value;
 			this.i = number.i;
 			this.j = number.j;
-			this.secondNumber = number.secondNumber;
+			this.secondNumbers = number.secondNumbers;
 			// this.path = number.path;
 		}
 
@@ -1009,22 +940,22 @@ public class LinkAPixArea {
 			}
 
 			field.val = ABSENCE;
-			field.belongsToNumber = null;
+			field.belongToNumber = null;
 			field.next = null;
 			field.prev = null;
-			this.secondNumber = null;
+			this.secondNumbers = null;
 		}
 	}
 
 	public void clearNextFields(Field next) {
 		next.val = ABSENCE;
-		next.belongsToNumber = null;
+		next.belongToNumber = null;
 
 		if (next.next != null) {
 			clearNextFields(next.next);
 		} else {
 			if (next.number != null) {
-				next.number.secondNumber = null;
+				next.number.secondNumbers = null;
 			}
 		}
 
@@ -1034,13 +965,13 @@ public class LinkAPixArea {
 
 	public void clearPrevFields(Field prev) {
 		prev.val = ABSENCE;
-		prev.belongsToNumber = null;
+		prev.belongToNumber = null;
 
 		if (prev.prev != null) {
 			clearPrevFields(prev.prev);
 		} else {
 			if (prev.number != null) {
-				prev.number.secondNumber = null;
+				prev.number.secondNumbers = null;
 			}
 		}
 		prev.next = null;
@@ -1079,17 +1010,17 @@ public class LinkAPixArea {
 				Field field = this.area[i][j];
 
 				field.val = ABSENCE;
-				field.belongsToNumber = null;
-				field.belongsToNumber_2 = null;
+				field.belongToNumber = null;
+				field.belongToNumberSecond = null;
 				field.prev = null;
 				field.next = null;
 
 				if (field.number != null) {
 					LaNumber laNumber = field.number;
 
-					laNumber.haveCommons = false;
+					laNumber.haveCommon = false;
 					laNumber.numbersInScope = null;
-					laNumber.secondNumber = null;
+					laNumber.secondNumbers = null;
 
 					ArrayList<LaNumber> listNumber = numbers
 							.get(laNumber.value);

@@ -151,11 +151,7 @@ public class PicAPixArea {
 			// Linie pionowe
 
 			k = 0;
-			//
-			// panel.repaint();
-			// JOptionPane.showMessageDialog(panel, k, "Info",
-			// JOptionPane.INFORMATION_MESSAGE);
-			// while (k < 24) {
+
 			while (change) {
 				k++;
 				change = false;
@@ -178,25 +174,6 @@ public class PicAPixArea {
 					}
 					determiningOfLengths(horizontalList, false, i++);
 				}
-
-				// DEBUG
-				// i = 0;
-				// System.out
-				// .println(k
-				// +
-				// ": ------------------------------------------------------------");
-				// for (ListOfNumber verticalList : this.verticalListsOfNumbers)
-				// {
-				// printSpecOfLengths(verticalList, i++);
-				// }
-				// i = 0;
-				// for (ListOfNumber horizontalList :
-				// this.horizontalListsOfNumbers) {
-				// printSpecOfLengths(horizontalList, i++);
-				// }
-				// panel.repaint();
-				// JOptionPane.showMessageDialog(panel, k, "Info",
-				// JOptionPane.INFORMATION_MESSAGE);
 
 			}
 
@@ -269,10 +246,10 @@ public class PicAPixArea {
 						+ paNumber.val; j++) {
 					if (isVertical) {
 						this.area[j][i].type = SELECTED;
-						this.area[j][i].belongsToVertical = paNumber;
+						// this.area[j][i].belongsToVertical = paNumber;
 					} else {
 						this.area[i][j].type = SELECTED;
-						this.area[i][j].belongsToHorizontal = paNumber;
+						// this.area[i][j].belongsToHorizontal = paNumber;
 					}
 
 					// jezeli dzialamy na lewej (pionowej) lub górnej
@@ -286,10 +263,12 @@ public class PicAPixArea {
 
 							if (isVertical) {
 								this.area[j][k].type = SELECTED;
-								this.area[j][k].belongsToHorizontal = firstNumber;
+								// this.area[j][k].belongsToHorizontal =
+								// firstNumber;
 							} else {
 								this.area[k][j].type = SELECTED;
-								this.area[k][j].belongsToVertical = firstNumber;
+								// this.area[k][j].belongsToVertical =
+								// firstNumber;
 							}
 
 						}
@@ -330,10 +309,12 @@ public class PicAPixArea {
 
 							if (isVertical) {
 								this.area[j][k].type = SELECTED;
-								this.area[j][k].belongsToHorizontal = lastNumber;
+								// this.area[j][k].belongsToHorizontal =
+								// lastNumber;
 							} else {
 								this.area[k][j].type = SELECTED;
-								this.area[k][j].belongsToVertical = lastNumber;
+								// this.area[k][j].belongsToVertical =
+								// lastNumber;
 							}
 
 						}
@@ -373,17 +354,10 @@ public class PicAPixArea {
 						- (numberList.sumOfNumbers - startPosition
 								- paNumber.val + numberList.numbers.size());
 			}
-			/*
-			 * System.out.print(paNumber.val + ": [" + paNumber.scope[0] + "," +
-			 * paNumber.scope[1] + "] ");
-			 */
+
 			startPosition += paNumber.val + 1;
 		}
-		// System.out.println("\n");
 
-		// panel.repaint();
-		// JOptionPane.showMessageDialog(null, i, "Info",
-		// JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void selectAbsenceToEmpty(boolean isVertical, int i) {
@@ -419,7 +393,6 @@ public class PicAPixArea {
 		}
 
 		if (setNumber.first) {
-			// numbers.get(i + 1).first = true;
 
 			for (int k = i + 1; k < numbers.size() - 1; k++) {
 				PaNumber number = numbers.get(k);
@@ -552,56 +525,6 @@ public class PicAPixArea {
 		actionOnLengths(numberList, isVertical, i);
 		tryDrawLength(numberList, isVertical, i);
 
-	}
-
-	// DEBUG
-	private void printSpecOfLengths(ListOfNumber numberList, int i) {
-		// DEBUG
-		if (numberList.selectedLengths == null) {
-			return;
-		}
-
-		for (Length l : numberList.selectedLengths) {
-			String open, close;
-
-			open = "<";
-			close = ">";
-
-			String belongsTo;
-			if (l.listOfNumbersToBelong == null) {
-				belongsTo = " nalezy do: NULL";
-			} else {
-				belongsTo = " nelezy do: ";
-				for (PaNumber number : l.listOfNumbersToBelong) {
-					belongsTo = belongsTo + number + ", ";
-				}
-			}
-
-			System.out.println(i + ": " + open + l.s + ", " + l.e + close
-					+ belongsTo);
-		}
-		if (numberList.spaceLengths == null) {
-			return;
-		}
-		for (Length l : numberList.spaceLengths) {
-			String open, close;
-
-			open = "(";
-			close = ")";
-			String belongsTo;
-			if (l.listOfNumbersToBelong == null) {
-				belongsTo = " nalezy do: NULL";
-			} else {
-				belongsTo = " nelezy do: ";
-				for (PaNumber number : l.listOfNumbersToBelong) {
-					belongsTo = belongsTo + number + ", ";
-				}
-			}
-			System.out.println(i + ": " + open + l.s + ", " + l.e + close
-					+ belongsTo);
-		}
-		// DEBUG
-		System.out.println();
 	}
 
 	private void actionOnLengths(ListOfNumber numberList, boolean isVertical,
@@ -1543,18 +1466,6 @@ public class PicAPixArea {
 							numberList.numbers, number.scope[0] - 1);
 
 				}
-				// int scopeRight = number.scope[0] - 1;
-				// for (int z = k - 1; z >= 0; z--) {
-				// PaNumber leftNumber = numberList.numbers.get(z);
-				//
-				// // test
-				// if (!leftNumber.enable) {
-				// break;
-				// }
-				//
-				// leftNumber.scope[1] = scopeRight;
-				// scopeRight -= (leftNumber.val + 1);
-				// }
 
 				// // na prawo
 				if (k + 1 < numberList.numbers.size()
@@ -1563,18 +1474,6 @@ public class PicAPixArea {
 							numberList.numbers, number.scope[1] + 1);
 				}
 
-				// int scopeLeft = number.scope[1] + 1;
-				// for (int z = k + 1; z < numberList.numbers.size(); z++) {
-				// PaNumber rightNumber = numberList.numbers.get(z);
-				//
-				// // test
-				// if (!rightNumber.enable) {
-				// break;
-				// }
-				// rightNumber.scope[0] = scopeLeft;
-				// scopeLeft += rightNumber.val + 1;
-				// }
-				// change = true;
 			}
 
 		}
@@ -1587,8 +1486,8 @@ public class PicAPixArea {
 									// koloru (pole niepokolorowane), 0 -- Puste
 									// pole (krzyzyk), 1 -- Pole zaznaczone
 									// (pokolorowane)
-		public PaNumber belongsToVertical;
-		public PaNumber belongsToHorizontal;
+									// public PaNumber belongsToVertical;
+		// public PaNumber belongsToHorizontal;
 
 		public Field() {
 
@@ -1819,10 +1718,6 @@ public class PicAPixArea {
 
 					this.listOfNumbersToBelong.add(number);
 
-					// System.out.println("Brak kontynuacji! " + number.val +
-					// ":["
-					// + number.scope[0] + ", " + number.scope[1] + "], ("
-					// + s + ", " + e + "), type:" + type);
 				}
 			}
 		}
@@ -1843,4 +1738,53 @@ public class PicAPixArea {
 		}
 	}
 
+	// DEBUG
+	private void printSpecOfLengths(ListOfNumber numberList, int i) {
+		// DEBUG
+		if (numberList.selectedLengths == null) {
+			return;
+		}
+
+		for (Length l : numberList.selectedLengths) {
+			String open, close;
+
+			open = "<";
+			close = ">";
+
+			String belongsTo;
+			if (l.listOfNumbersToBelong == null) {
+				belongsTo = " nalezy do: NULL";
+			} else {
+				belongsTo = " nelezy do: ";
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					belongsTo = belongsTo + number + ", ";
+				}
+			}
+
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close
+					+ belongsTo);
+		}
+		if (numberList.spaceLengths == null) {
+			return;
+		}
+		for (Length l : numberList.spaceLengths) {
+			String open, close;
+
+			open = "(";
+			close = ")";
+			String belongsTo;
+			if (l.listOfNumbersToBelong == null) {
+				belongsTo = " nalezy do: NULL";
+			} else {
+				belongsTo = " nelezy do: ";
+				for (PaNumber number : l.listOfNumbersToBelong) {
+					belongsTo = belongsTo + number + ", ";
+				}
+			}
+			System.out.println(i + ": " + open + l.s + ", " + l.e + close
+					+ belongsTo);
+		}
+		// DEBUG
+		System.out.println();
+	}
 }

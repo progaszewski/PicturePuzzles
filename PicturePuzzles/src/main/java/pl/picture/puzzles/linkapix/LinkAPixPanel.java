@@ -87,7 +87,7 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 					int marginLeftPrim = marginLeft;
 					int marginTopPrim = marginTop;
 
-					if ((linkAPixArea.area[i][j].belongsToNumber == selectedNumber || (selectedNumber != null && (linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber || (selectedNumber.secondNumber != null && linkAPixArea.area[i][j].belongsToNumber == selectedNumber.secondNumber
+					if ((linkAPixArea.area[i][j].belongToNumber == selectedNumber || (selectedNumber != null && (linkAPixArea.area[i][j].belongToNumber == selectedNumber.secondNumbers || (selectedNumber.secondNumbers != null && linkAPixArea.area[i][j].belongToNumber == selectedNumber.secondNumbers
 							.get(0)))))
 							&& (linkAPixArea.area[i][j].number == null || linkAPixArea.area[i][j].number.value != 1)) {
 						gridColor = Color.RED;
@@ -226,7 +226,7 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 				if (selectedNumber != null
 						&& linkAPixArea.area[i][j].number == selectedNumber) {
 
-					if (selectedNumber.secondNumber == null) {
+					if (selectedNumber.secondNumbers == null) {
 						selectedNumber.unselect();
 					}
 					selectedNumber = null;
@@ -270,7 +270,7 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 						lastPosition = linkAPixArea.area[i][j].prev;
 
 						linkAPixArea.area[i][j].val = LinkAPixArea.ABSENCE;
-						linkAPixArea.area[i][j].belongsToNumber = null;
+						linkAPixArea.area[i][j].belongToNumber = null;
 						linkAPixArea.area[i][j].next = null;
 						linkAPixArea.area[i][j].prev = null;
 
@@ -281,17 +281,17 @@ public class LinkAPixPanel extends JPanel implements MouseListener {
 					if ((((i == lastPosition.i - 1 || i == lastPosition.i + 1) && j == lastPosition.j) || (i == lastPosition.i && (j == lastPosition.j - 1 || j == lastPosition.j + 1)))
 							&& linkAPixArea.area[i][j].val != LinkAPixArea.SELECTED
 							&& (linkAPixArea.area[i][j].number == null || linkAPixArea.area[i][j].number.value == selectedNumber.value)
-							&& selectedNumber.secondNumber == null) {
+							&& selectedNumber.secondNumbers == null) {
 
 						System.out.println("2");
 						if (linkAPixArea.area[i][j].number != null
 								&& linkAPixArea.area[i][j].number.value == selectedNumber.value) {
 
-							selectedNumber.secondNumber = new ArrayList<LaNumber>();
-							selectedNumber.secondNumber
+							selectedNumber.secondNumbers = new ArrayList<LaNumber>();
+							selectedNumber.secondNumbers
 									.add(linkAPixArea.area[i][j].number);
-							linkAPixArea.area[i][j].number.secondNumber = new ArrayList<LaNumber>();
-							linkAPixArea.area[i][j].number.secondNumber
+							linkAPixArea.area[i][j].number.secondNumbers = new ArrayList<LaNumber>();
+							linkAPixArea.area[i][j].number.secondNumbers
 									.add(selectedNumber);
 							linkAPixArea.area[i][j]
 									.setBelongsToNumber(selectedNumber);

@@ -20,6 +20,7 @@ public class FillAPixArea {
 
 	private Field[][] tmp;
 
+	// Lista służąca do resetowania pól nie pokolorowanych
 	private ArrayList<Field> absenceFields = new ArrayList<Field>();
 
 	public FillAPixArea(File f) {
@@ -187,7 +188,7 @@ public class FillAPixArea {
 		}
 	}
 
-	// Zamalowanie wszystkich pol pusty na szaro oraz przygotowanie kopii
+	// Zamalowanie wszystkich pol pustych na szaro oraz przygotowanie kopii
 	// zapasowej areny
 	public void beforeCheck() {
 		this.tmp = new Field[this.y][this.x];
@@ -247,7 +248,7 @@ public class FillAPixArea {
 						|| (number.i == y - 1 && number.j == 0)
 						|| (number.i == y - 1 && number.j == x - 1)) {
 
-					// Jezeli rob ma liczbe 4 oznacz wszystko na ZANZACZONE
+					// Jezeli rog ma liczbe 4 oznacz wszystko na ZANZACZONE
 					if (number.value == 4) {
 						selectFields(number, SELECTED);
 						changeFlag = true;
@@ -270,8 +271,7 @@ public class FillAPixArea {
 				}
 
 				// Liczenie pol oznaczonych na PUSTE i ZAZNACZONE, jezeli sa
-				// roznice zwraca flaga sygnalizujaca miana jest ustawiana na
-				// true
+				// roznice zwraca wartosc true, co oznacza, ze byla zmiana
 				if (countMarkedFields(number)) {
 					changeFlag = true;
 				}
@@ -383,7 +383,7 @@ public class FillAPixArea {
 		}
 
 		for (FaPNumber number : tmpNumbers) {
-			// ilosc pozostalych pol do pokolorowania
+			// ilosc pozostalych mozlowych pol do pokolorowania
 			byte n = (byte) (9 - number.numberEmpty - number.numberSelected);
 			// ile zostalo jeszcze pol do zamalowania dla aktulanej cyfry
 			byte x = (byte) (number.value - number.numberSelected);
@@ -397,8 +397,8 @@ public class FillAPixArea {
 				if (k < x) {
 					ArrayList<Field> fields = number.relations
 							.get(relatedNumber);
-					// Sprawdzenie czy pola, ktore sa w relacji dwoch cyfr
-					// powinny zostac oznaczone jako "SELECTED"
+					// Sprawdzenie czy pola, ktore nie są w relacji dwóch
+					// numerów powinny został zaczernione
 					if (n - fields.size() == x - k) {
 
 						selectFields(number, relatedNumber, SELECTED);
