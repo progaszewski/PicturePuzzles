@@ -24,6 +24,7 @@ public class PicAPixArea {
 	public int maxVerticalNumbers, maxHorizontalNumbers;
 
 	private boolean change;
+	private boolean error = false;
 
 	private JPanel panel;
 
@@ -125,7 +126,7 @@ public class PicAPixArea {
 	}
 
 	public boolean solvePuzzle(JPanel panel) {
-
+		this.error = false;
 		this.panel = panel;
 		clearArea();
 		int k;
@@ -152,7 +153,7 @@ public class PicAPixArea {
 			// Linie pionowe
 
 			k = 0;
-			while (change) {
+			while (change && !error) {
 				k++;
 				change = false;
 				i = 0;
@@ -1723,7 +1724,7 @@ public class PicAPixArea {
 						this.listOfNumbersToBelong.add(number);
 						continue;
 					}
-
+					error = true;
 					System.out.println("Błąd! " + number.val + ":["
 							+ number.scope[1] + ", " + number.scope[1] + "], <"
 							+ s + ", " + e + ">, type:" + type);
