@@ -220,10 +220,11 @@ public class FillAPixArea {
 		for (FaPNumber number : this.numbers) {
 			tmpNumbers.add(new FaPNumber(number));
 		}
-
+		cleanArea();
 		// Rozpoczęcie odmierzania czasu rozwiazywania lamiglowki
 		long startCountTimeElapsed = System.currentTimeMillis();
-
+		int iloscProb = 0;
+		int iloscAdvance = 0;
 		do {
 			changeFlag = false;
 			for (FaPNumber number : tmpNumbers) {
@@ -307,16 +308,19 @@ public class FillAPixArea {
 			// napewno nie moga byc pokolorowane
 			if (!changeFlag && tmpNumbers.size() > 0) {
 				changeFlag = advanceColoring(tmpNumbers);
+				iloscAdvance++;
 			}
+			iloscProb++;
 		} while (tmpNumbers.size() > 0 && changeFlag);
 		// Zakonczenie odmierzania czasu
 
-		if (!changeFlag)
-			System.out
-					.println("ALGORYTM: Nie potrafie rozwiazac lamiglowki ;(");
-
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
+
+		System.out.println("Algorytm wykonał " + iloscProb
+				+ " prób rozwiązania łamigłówki.");
+		System.out.println("W tym " + iloscAdvance
+				+ " razy wykonał zaawansowane kolorowanie.");
 
 		return checkSolve();
 	}
@@ -473,5 +477,19 @@ public class FillAPixArea {
 			}
 		}
 
+	}
+
+	private void cleanArea() {
+		for (int i = 0; i < this.y; i++) {
+			for (int j = 0; j < this.x; j++) {
+				area[i][j].belongsToNumber = null;
+				area[i][j].val = ABSENCE;
+			}
+		}
+
+		for (FaPNumber number : this.numbers) {
+			number.numberEmpty = 0;
+			number.numberSelected = 0;
+		}
 	}
 }

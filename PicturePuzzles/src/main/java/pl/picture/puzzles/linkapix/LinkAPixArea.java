@@ -86,6 +86,11 @@ public class LinkAPixArea {
 		boolean change = true;
 		this.isAdvance = false;
 
+		int iloscProb = 0;
+		int odkiedyAdvance = 0;
+		int ileRazyWspolne = 0;
+		int ileRazyNumery = 0;
+
 		// pobranie listy liczb o wartosci 1
 		List<LaNumber> oneNumbers = numbers.get((byte) 1);
 
@@ -206,6 +211,7 @@ public class LinkAPixArea {
 									change = change2 = true;
 								}
 							}
+							ileRazyNumery++;
 						}
 
 						if (numbersByKeyToRemove.size() > 0) {
@@ -224,17 +230,18 @@ public class LinkAPixArea {
 						numbers.remove(num);
 					}
 				}
-
+				iloscProb++;
 				// Jeżeli nic nie udalo sie zmienic i tryb zaawansowany jest
 				// wyłączony włączy tryb zaawansowany
 				if (!change && !this.isAdvance) {
 					change = this.isAdvance = true;
+					odkiedyAdvance = iloscProb;
 				}
 
 				if (!change && this.isAdvance) {
 					this.isDetermitingCommonFields = true;
 					change = determinateCommonFields();
-
+					ileRazyWspolne++;
 					this.isDetermitingCommonFields = false;
 					this.spr = true;
 
@@ -247,6 +254,14 @@ public class LinkAPixArea {
 
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
+
+		System.out.println("Algorytm wykonał " + iloscProb
+				+ " prób rozwiązania całej łamigłówki.");
+		System.out.println("Od " + odkiedyAdvance
+				+ " próby zostało włączone zaawnasowane rozwiązywanie.");
+		System.out.println("Łącznie wykonał " + ileRazyNumery
+				+ " prób łączenia liczb.");
+		System.out.println(ileRazyWspolne + " razy wyznaczał wspólne kratki.");
 		return checkSolve();
 	}
 
@@ -383,7 +398,7 @@ public class LinkAPixArea {
 		if (this.commonFields.size() == 0) {
 			for (int i = 1; i < fields.length - 1; i++) {
 				Field field = fields[i];
-				commonFields.put(field, 1);
+				commonFields.put(field, null);
 			}
 			return;
 		}
@@ -392,10 +407,9 @@ public class LinkAPixArea {
 
 		for (int i = 1; i < fields.length - 1; i++) {
 			Field field = fields[i];
-			Integer j = this.commonFields.get(field);
 
-			if (j != null) {
-				temp.put(field, 1);
+			if (this.commonFields.containsKey(field)) {
+				temp.put(field, null);
 			}
 		}
 

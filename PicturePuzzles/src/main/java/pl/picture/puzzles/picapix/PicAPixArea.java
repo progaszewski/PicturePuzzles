@@ -127,6 +127,7 @@ public class PicAPixArea {
 	public boolean solvePuzzle(JPanel panel) {
 
 		this.panel = panel;
+		clearArea();
 		int k;
 		// Rozpoczęcie odmierzania czasu rozwiazywania lamiglowki
 		long startCountTimeElapsed = System.currentTimeMillis();
@@ -151,7 +152,6 @@ public class PicAPixArea {
 			// Linie pionowe
 
 			k = 0;
-
 			while (change) {
 				k++;
 				change = false;
@@ -195,7 +195,7 @@ public class PicAPixArea {
 		}
 		PuzzleUtilities.showTimeElapsed(System.currentTimeMillis()
 				- startCountTimeElapsed);
-		System.out.println("Wykonano " + k + " prob rozwiazania lamiglowki!");
+		System.out.println("Wykonano " + k + " prób rozwiązania łamigłówki!");
 		return checkPuzzle();
 	}
 
@@ -763,7 +763,7 @@ public class PicAPixArea {
 			}
 
 			// Jeżeli jest to ostatnia przestrzeń
-			if (k == lengths.size() - 1 && k < n - 1) {
+			if (k == lengths.size() - 1 && length.e < n - 1) {
 				// Spróbuj zmienieć zasięg liczb należących do tej przestrzeni
 				// int lastNumberIndex = numberList.numbers.size() - 1;
 				// numberList.numbers.get(lastNumberIndex).changeScopeRight(
@@ -923,6 +923,7 @@ public class PicAPixArea {
 
 			// Jeżeli nie jest to pierwsza przestrzeń to znajdź odcinek należący
 			// do niej najbardziej na lewo
+
 			if (k > 0) {
 
 				Length foundSelectLength = null;
@@ -1437,7 +1438,7 @@ public class PicAPixArea {
 				setNumberEnableToFalse(numberList.numbers, number, k);
 
 				numberList.otherNumbers--;
-				numberList.sumOfNumbers -= number.val;
+				// numberList.sumOfNumbers -= number.val;
 				if (numberList.otherNumbers == 0) {
 					// System.out.println("COMPLETE!!! " + i);
 					selectAbsenceToEmpty(isVertical, i);
@@ -1480,6 +1481,58 @@ public class PicAPixArea {
 
 	}
 
+	private void clearArea() {
+		for (int i = 0; i < this.y; i++) {
+			for (int j = 0; j < this.x; j++) {
+				area[i][j].type = ABSENCE;
+			}
+		}
+
+		for (ListOfNumber listOfNumber : this.verticalListsOfNumbers) {
+			listOfNumber.selectedLengths = null;
+			listOfNumber.spaceLengths = null;
+			listOfNumber.otherNumbers = (byte) listOfNumber.numbers.size();
+
+			int k = 0;
+			for (PaNumber number : listOfNumber.numbers) {
+				number.enable = true;
+				number.first = false;
+				number.last = false;
+				if (k == 0) {
+					number.first = true;
+				}
+				if (k == listOfNumber.numbers.size() - 1) {
+					number.last = true;
+				}
+				number.scope = null;
+				k++;
+			}
+
+		}
+		for (ListOfNumber listOfNumber : this.horizontalListsOfNumbers) {
+			listOfNumber.selectedLengths = null;
+			listOfNumber.spaceLengths = null;
+			listOfNumber.otherNumbers = (byte) listOfNumber.numbers.size();
+
+			int k = 0;
+			for (PaNumber number : listOfNumber.numbers) {
+				number.enable = true;
+				number.first = false;
+				number.last = false;
+				if (k == 0) {
+					number.first = true;
+				}
+				if (k == listOfNumber.numbers.size() - 1) {
+					number.last = true;
+				}
+				number.scope = null;
+				k++;
+			}
+
+		}
+
+	}
+
 	// Klasa reprezetujaca pole / kratke na planszy
 	public class Field {
 		public byte type = ABSENCE; // typ pola, mozliwe wartosci: -1 -- Brak
@@ -1487,6 +1540,7 @@ public class PicAPixArea {
 									// pole (krzyzyk), 1 -- Pole zaznaczone
 									// (pokolorowane)
 									// public PaNumber belongsToVertical;
+
 		// public PaNumber belongsToHorizontal;
 
 		public Field() {

@@ -74,6 +74,8 @@ public class LinkAPixPuzzle extends Puzzle {
 
 	@Override
 	public void drawPazzle(File f) {
+		laPanel.lastPosition = null;
+		laPanel.selectedNumber = null;
 		linkAPixArea = new LinkAPixArea(f);
 		laPanel.drawArea(linkAPixArea);
 	}
