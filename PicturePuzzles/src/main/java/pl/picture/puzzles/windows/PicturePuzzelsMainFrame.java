@@ -10,6 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
@@ -127,6 +128,19 @@ public class PicturePuzzelsMainFrame extends JFrame {
 
 		JMenuItem aboutAplication = new JMenuItem(
 				Messages.getString("PicturePuzzelsMainFrame.mntmAboutAplication.text")); //$NON-NLS-1$
+		aboutAplication.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JOptionPane
+						.showMessageDialog(
+								null,
+								"Program Picture Puzzles został napisany w ramach pracy magisterskiej.\n"
+										+ "Umożliwia rozwiązywanie trzech łamigłówke Fill-A-Pix, Link-A-Pix oraz Pic-A-Pix.\n"
+										+ "Główną funkcją programu jest to, że sam może rozwiązywać te łamigłówki.\n"
+										+ "Autor: Piotr Rogaszewski",
+								"O programie", JOptionPane.INFORMATION_MESSAGE);
+
+			}
+		});
 		helpMenu.add(aboutAplication);
 		// domyslna lamiglowka: Fill-a-Pix
 		puzzle = new FillAPixPuzzle();

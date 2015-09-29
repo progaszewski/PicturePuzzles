@@ -975,12 +975,13 @@ public class PicAPixArea {
 
 						int diff = foundSelectLength.s - length.s - 1;
 
-						System.out.println("Diff: " + diff);
+						// System.out.println("Diff: " + diff);
 						// Sprawdz czy można zmniejszyć różnicę
 						int checkDiff = foundSelectLength.s + number.val
 								- (length.e + 1);
-						System.out.println("CheckDiff: " + checkDiff);
-						System.out.println("prevNumber.val: " + prevNumber.val);
+						// System.out.println("CheckDiff: " + checkDiff);
+						// System.out.println("prevNumber.val: " +
+						// prevNumber.val);
 						if (checkDiff > 0) {
 							diff = diff - checkDiff;
 						}
@@ -997,26 +998,26 @@ public class PicAPixArea {
 					// początkiem odcinka, który da się wyznaczy na podstawie
 					// znalezionej największej liczby
 					if (!ok) {
-						System.out
-								.println("Lewy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-						if (isVertical) {
-							System.out.println("V " + i);
-						} else {
-							System.out.println("H " + i);
-						}
-						System.out.println("Przestrzen: " + length);
-						System.out.println("Znaleziony odcinek: "
-								+ foundSelectLength);
+						// System.out
+						// .println("Lewy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+						// if (isVertical) {
+						// System.out.println("V " + i);
+						// } else {
+						// System.out.println("H " + i);
+						// }
+						// System.out.println("Przestrzen: " + length);
+						// System.out.println("Znaleziony odcinek: "
+						// + foundSelectLength);
 						int diff = (foundSelectLength.e - maxNumber.val + 1)
 								- length.s;
 
 						for (int j = length.s; j <= length.s + diff - 1; j++) {
 							if (isVertical) {
 								this.area[j][i].changeType(EMPTY);
-								System.out.println(j + ", " + i);
+								// System.out.println(j + ", " + i);
 							} else {
 								this.area[i][j].changeType(EMPTY);
-								System.out.println(i + ", " + j);
+								// System.out.println(i + ", " + j);
 							}
 						}
 					}
@@ -1095,26 +1096,26 @@ public class PicAPixArea {
 					// końcem odcinka, który da się wyznaczy na podstawie
 					// znalezionej największej liczby
 					if (!ok) {
-						System.out
-								.println("Prawy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-						if (isVertical) {
-							System.out.println("V " + i);
-						} else {
-							System.out.println("H " + i);
-						}
-						System.out.println("Przestrzen: " + length);
-						System.out.println("Znaleziony odcinek: "
-								+ foundSelectLength);
+						// System.out
+						// .println("Prawy - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+						// if (isVertical) {
+						// System.out.println("V " + i);
+						// } else {
+						// System.out.println("H " + i);
+						// }
+						// System.out.println("Przestrzen: " + length);
+						// System.out.println("Znaleziony odcinek: "
+						// + foundSelectLength);
 						int diff = length.e
 								- (foundSelectLength.s + maxNumber.val - 1);
 
 						for (int j = length.e; j >= length.e - diff + 1; j--) {
 							if (isVertical) {
 								this.area[j][i].changeType(EMPTY);
-								System.out.println(j + ", " + i);
+								// System.out.println(j + ", " + i);
 							} else {
 								this.area[i][j].changeType(EMPTY);
-								System.out.println(i + ", " + j);
+								// System.out.println(i + ", " + j);
 							}
 						}
 
@@ -1275,9 +1276,9 @@ public class PicAPixArea {
 							continue;
 
 						if (length != verticalList.numbers.get(index++).val) {
-							System.out.println("length = " + length
-									+ ", length != verticalList.numbers.get("
-									+ (index - 1) + ").val - pion");
+							// System.out.println("length = " + length
+							// + ", length != verticalList.numbers.get("
+							// + (index - 1) + ").val - pion");
 							return false;
 						}
 						length = 0;
@@ -1325,9 +1326,9 @@ public class PicAPixArea {
 							continue;
 
 						if (length != horizontalList.numbers.get(index++).val) {
-							System.out.println("length = " + length
-									+ ", length != verticalList.numbers.get("
-									+ (index - 1) + ").val - poziom");
+							// System.out.println("length = " + length
+							// + ", length != verticalList.numbers.get("
+							// + (index - 1) + ").val - poziom");
 
 							return false;
 						}
